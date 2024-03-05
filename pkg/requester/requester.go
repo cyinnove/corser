@@ -138,7 +138,7 @@ func anyOrigin(wildcard bool) []string {
 		"https://zomasec.io",
 	}
 
-	if wildcard == true {
+	if wildcard  {
 		origins = append(origins, "*")
 	}
 	return origins
