@@ -1,3 +1,8 @@
 module corser
 
-go 1.21.7
+go 1.22.0
+
+require (
+	github.com/zomasec/tld v1.0.2 // indirect
+	golang.org/x/net v0.21.0 // indirect
+)

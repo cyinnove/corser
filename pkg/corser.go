@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	 "github.com/zomasec/tld"
+	"github.com/zomasec/tld"
 )
 
 type Scanner struct {
