@@ -1,6 +1,6 @@
 github.com/zomasec/logz v1.0.0 h1:Qg8/v4Qn3EdbG77cKiBYpBRKgxR6LJRToTTTwGZc3qY=
 github.com/zomasec/logz v1.0.0/go.mod h1:unQ4xwWC2PIGqPchN1dOX10tnWqecsmEj9Gh7pCvsaQ=
-github.com/zomasec/tld v1.0.2 h1:hm6iE8pbHkUFsVuVs66wmHLBVoOdBf7RmTYVH6GmcEg=
-github.com/zomasec/tld v1.0.2/go.mod h1:Cl/kedhCQQ9rDxkNfnx8GRkh+uL6g/xqAJGPKKx8wfM=
+github.com/zomasec/tld v1.0.3 h1:/tCDYpT3TMXxqZflUyeIj3fXyQxlxbQ/sT3GPUNtINo=
+github.com/zomasec/tld v1.0.3/go.mod h1:Cl/kedhCQQ9rDxkNfnx8GRkh+uL6g/xqAJGPKKx8wfM=
 golang.org/x/net v0.21.0 h1:AQyQV4dYCvJ7vGmJyKki9+PBdyvhkSd8EIx/qb0AYv4=
 golang.org/x/net v0.21.0/go.mod h1:bIjVDfnllIU7BJ2DNgfnXvpSvtn8VRwhlsaeUTyUS44=

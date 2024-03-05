@@ -1,4 +1,4 @@
-package corser 
+package corser
 
 import (
 	"bufio"
