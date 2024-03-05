@@ -1,15 +1,16 @@
 package requester
 
 import (
-	"net/http"
-	"strings"
-	"regexp"
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net/http"
+	"regexp"
+	"strings"
+	"sync"
 	"time"
+
 	"github.com/zomasec/tld"
-	
 )
 type Request struct {
 	Request *http.Request
@@ -189,28 +190,63 @@ func specialChars(things []string) []string {
 }
 
 func (r *Request) ScanTester(client *http.Client, URL string, wildcard bool) {
-
+	var wg *sync.WaitGroup
+	
 	parts, _ := netParser(URL)
 
-	anyOrigin := anyOrigin(wildcard)
-	r.Requester(client, URL, anyOrigin)
+	wg.Add(7)
 
-	prefix := prefix(parts)
-	r.Requester(client, URL, prefix)
+	go func ()  {
+		defer wg.Done()
 
-	suffix := suffix(parts)
-	r.Requester(client, URL, suffix)
+		anyOrigin := anyOrigin(wildcard)
+		r.Requester(client, URL, anyOrigin)
+	}()
+	
+	
+	go func ()  {
+		defer wg.Done()
 
-	escaped := notEscapeDot(parts)
-	r.Requester(client, URL, escaped)
+		prefix := prefix(parts)
+		r.Requester(client, URL, prefix)
+	}()
 
-	null := null()
-	r.Requester(client, URL, null)
 
-	thirdParties := thirdParties()
-	r.Requester(client, URL, thirdParties)
+	go func ()  {
+		defer wg.Done()
+		
+		suffix := suffix(parts)
+		r.Requester(client, URL, suffix)
+		}()
 
-	specialChars := specialChars(parts)
-	r.Requester(client, URL, specialChars)
+	go func ()  {
+		defer wg.Done()
+		
+		escaped := notEscapeDot(parts)
+		r.Requester(client, URL, escaped)
+		}()
+
+	go func ()  {
+		defer wg.Done()
+		
+		null := null()
+		r.Requester(client, URL, null)
+		}()
+
+	go func ()  {
+		defer wg.Done()
+		
+		thirdParties := thirdParties()
+		r.Requester(client, URL, thirdParties)
+		}()
+
+	go func ()  {
+		defer wg.Done()
+		
+		specialChars := specialChars(parts)
+		r.Requester(client, URL, specialChars)
+		}()
+
+	wg.Wait()	
 
 }

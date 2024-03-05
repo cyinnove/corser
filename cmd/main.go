@@ -32,7 +32,7 @@ func main() {
 		}
 
 	} else {
-		if err := Scan.ReadFromStdin(); err != nil {
+		if err := Scan.ReadURLsFromStdin(); err != nil {
 			logger.FATAL("Error reading from Stdin")
 		}
 	}
