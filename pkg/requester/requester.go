@@ -1,4 +1,4 @@
-package tester
+package requester
 
 import (
 	"net/http"
