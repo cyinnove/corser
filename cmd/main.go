@@ -6,6 +6,7 @@ import (
 	"flag"
 	"github.com/zomasec/logz"
 	"corser/pkg/corser"
+	requester "corser/pkg/requester"
 )
 
 
@@ -36,7 +37,7 @@ func main() {
 		}
 	}
 
-	scan := corser.NewScanner(Scan.URLs, *cLevel, *checkWildcard, corser.NewRequester(*method, *header, *cookies, *timeout))
+	scan := corser.NewScanner(Scan.URLs, *cLevel, *checkWildcard, requester.NewRequester(*method, *header, *cookies, *timeout))
 
 	scan.RunScan()
 
