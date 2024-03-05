@@ -82,7 +82,7 @@ func (s *Scanner) ReadURLsFromFile(filename string) error {
 	return nil
 }
 
-func (s *Scanner) ReadFromStdin() error {
+func (s *Scanner) ReadURLsFromStdin() error {
 	// Read URLs from standard input
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
