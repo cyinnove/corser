@@ -115,7 +115,6 @@ func (r *Request) requester(client *http.Client, URL string, origins []string) {
 }
 
 
-
 func netParser(url string) ([]string, error) {
 	var parsedURLs []string
 

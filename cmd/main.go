@@ -5,8 +5,7 @@ import (
 
 	"flag"
 	"github.com/zomasec/logz"
-	"corser/pkg/corser"
-	requester "corser/pkg/requester"
+	"corser/runner"
 )
 
 
@@ -24,21 +23,23 @@ func main() {
 	timeout := flag.Int("timeout", 5, "Timeout for each request")
 
 	flag.Parse()
-	var Scan *corser.Scanner
+	
+	runner := runner.NewRunner()
+
 
 	if *list != "" {
-		if err := Scan.ReadURLsFromFile(*list); err != nil {
+		if err := runner.ReadURLsFromFile(*list); err != nil {
 			logger.FATAL("Error reading from a file %s , %v\n", *list, err)
 		}
 
 	} else {
-		if err := Scan.ReadURLsFromStdin(); err != nil {
+		if err := runner.ReadURLsFromStdin(); err != nil {
 			logger.FATAL("Error reading from Stdin")
 		}
 	}
 
-	scan := corser.NewScanner(Scan.URLs, *cLevel, *checkWildcard, requester.NewRequester(*method, *header, *cookies, *timeout))
 
-	scan.RunScan()
+	runner.RunScan(*cLevel, *checkWildcard, *method, *header, *cookies, *timeout)
+
 
 }

@@ -1,21 +1,19 @@
 package corser
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"sync"
 	requester "corser/pkg/requester"
 
 
 )
 
-type Scanner struct {
+type Scan struct {
 	Request     *requester.Request
 	URLs        []string
-	Concurrency int
+	ConcurrencyLevel int
 	Wildcard    bool
 	Errors      chan error
 	//	Delay 		*time.Duration
@@ -27,15 +25,15 @@ type Result struct {
 	StdOut     *io.Writer
 }
 
-func NewScanner(urls []string, concurrencyLevel int, wildcard bool, requester *requester.Request) *Scanner {
-	return &Scanner{URLs: urls, Concurrency: concurrencyLevel, Wildcard: wildcard, Request: requester, Errors: make(chan error, concurrencyLevel)}
+func NewScan(urls []string, concurrencyLevel int, wildcard bool, requester *requester.Request) *Scan {
+	return &Scan{URLs: urls, ConcurrencyLevel: concurrencyLevel, Wildcard: wildcard, Request: requester, Errors: make(chan error, concurrencyLevel)}
 }
 
 
-func (s *Scanner) RunScan() {
+func (s *Scan) RunScan() {
 	var wg sync.WaitGroup
 
-	cLevel := make(chan struct{}, s.Concurrency)
+	cLevel := make(chan struct{}, s.ConcurrencyLevel)
 	client := s.Request.SetClient()
 
 	for _, URL := range s.URLs {
@@ -56,45 +54,4 @@ func (s *Scanner) RunScan() {
 
 }
 
-func (s *Scanner) ReadURLsFromFile(filename string) error {
 
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		url := strings.TrimSpace(scanner.Text())
-		if url != "" {
-			s.URLs = append(s.URLs, url)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Scanner) ReadURLsFromStdin() error {
-	// Read URLs from standard input
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		url := strings.TrimSpace(scanner.Text())
-		if url != "" {
-			s.URLs = append(s.URLs, url)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
