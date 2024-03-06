@@ -78,7 +78,7 @@ func (r *Request) addMethod() {
 
 
 
-func (r *Request) Requester(client *http.Client, URL string, origins []string) {
+func (r *Request) requester(client *http.Client, URL string, origins []string) {
 
 	for _, origin := range origins {
 		r.addMethod()
@@ -176,10 +176,10 @@ func thirdParties() []string {
 }
 
 
-func specialChars(things []string) []string {
+func specialChars(parts []string) []string {
 	var origins []string
 	chars := []string{"_", "-", "{", "}", "^", "%60", "!", "~", "`", ";", "|", "&", "(", ")", "*", "'", "\"", "$", "=", "+", "%0b"}
-	permute := []string{"https://" + things[0] + "." + things[1] + "." + things[2] + "%s" + ".zomasec.io"}
+	permute := []string{"https://" + parts[0] + "." + parts[1] + "." + parts[2] + "%s" + ".zomasec.io"}
 	for i, per := range permute {
 		for _, char := range chars {
 			permute[i] = fmt.Sprintf(per, char)
@@ -200,7 +200,7 @@ func (r *Request) ScanTester(client *http.Client, URL string, wildcard bool) {
 		defer wg.Done()
 
 		anyOrigin := anyOrigin(wildcard)
-		r.Requester(client, URL, anyOrigin)
+		r.requester(client, URL, anyOrigin)
 	}()
 	
 	
@@ -208,7 +208,7 @@ func (r *Request) ScanTester(client *http.Client, URL string, wildcard bool) {
 		defer wg.Done()
 
 		prefix := prefix(parts)
-		r.Requester(client, URL, prefix)
+		r.requester(client, URL, prefix)
 	}()
 
 
@@ -216,35 +216,35 @@ func (r *Request) ScanTester(client *http.Client, URL string, wildcard bool) {
 		defer wg.Done()
 		
 		suffix := suffix(parts)
-		r.Requester(client, URL, suffix)
+		r.requester(client, URL, suffix)
 		}()
 
 	go func ()  {
 		defer wg.Done()
 		
 		escaped := notEscapeDot(parts)
-		r.Requester(client, URL, escaped)
+		r.requester(client, URL, escaped)
 		}()
 
 	go func ()  {
 		defer wg.Done()
 		
 		null := null()
-		r.Requester(client, URL, null)
+		r.requester(client, URL, null)
 		}()
 
 	go func ()  {
 		defer wg.Done()
 		
 		thirdParties := thirdParties()
-		r.Requester(client, URL, thirdParties)
+		r.requester(client, URL, thirdParties)
 		}()
 
 	go func ()  {
 		defer wg.Done()
 		
 		specialChars := specialChars(parts)
-		r.Requester(client, URL, specialChars)
+		r.requester(client, URL, specialChars)
 		}()
 
 	wg.Wait()	
