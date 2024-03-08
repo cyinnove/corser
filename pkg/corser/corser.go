@@ -1,4 +1,4 @@
-package main//corser
+package corser
 
 import (
 	requester "corser/pkg/requester"
