@@ -61,7 +61,7 @@ func main() {
 	scan := NewScan(URLs, 2, true, req)
 
 	scan.RunScan()
-
+//
 
 
 }
