@@ -51,7 +51,7 @@ func (s *Scan) RunScan() {
 
 }
 
-
+// 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
 func main() {
 	
 	URLs := []string{"https://0a3c00a4034d5eb080078b81008b0066.web-security-academy.net/accountDetails"}
