@@ -10,27 +10,27 @@ import (
 	"corser/pkg/requester"
 )
 
-
 type Runner struct {
-	CORSER  *corser.Scan
-	Request *requester.Request
+	CORSER  corser.Scan
+	Request requester.Request
 }
-
 
 func NewRunner() *Runner {
-	return &Runner{CORSER: &corser.Scan{}, Request: &requester.Request{}}
+    return &Runner{
+        Request: requester.Request{},
+        CORSER: corser.Scan{},
+    }
 }
 
-
-func (r *Runner) RunScan(cLevel int, wildcard bool, method string, header string, cookies string, timeout int ) {
+func (r *Runner) RunScan(cLevel int, wildcard bool, method string, header string, cookies string, timeout int) {
 
 	r.CORSER.ConcurrencyLevel = cLevel
 	r.CORSER.Wildcard = wildcard
 	r.Request.Method = method
 	r.Request.Header = header
-	r.Request.Cookies = cookies 
-	r.Request.Timeout = time.Duration(timeout) 
-	
+	r.Request.Cookies = cookies
+	r.Request.Timeout = time.Duration(timeout)
+
 	r.CORSER.RunScan()
 
 }

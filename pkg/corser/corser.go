@@ -1,21 +1,19 @@
-package corser
+package main//corser
 
 import (
+	requester "corser/pkg/requester"
 	"fmt"
 	"io"
 	"os"
 	"sync"
-	requester "corser/pkg/requester"
-
-
 )
 
 type Scan struct {
-	Request     *requester.Request
-	URLs        []string
+	Request          *requester.Request
+	URLs             []string
 	ConcurrencyLevel int
-	Wildcard    bool
-	Errors      chan error
+	Wildcard         bool
+	Errors           chan error
 	//	Delay 		*time.Duration
 	//Proxy		string
 }
@@ -28,7 +26,6 @@ type Result struct {
 func NewScan(urls []string, concurrencyLevel int, wildcard bool, requester *requester.Request) *Scan {
 	return &Scan{URLs: urls, ConcurrencyLevel: concurrencyLevel, Wildcard: wildcard, Request: requester, Errors: make(chan error, concurrencyLevel)}
 }
-
 
 func (s *Scan) RunScan() {
 	var wg sync.WaitGroup
@@ -55,3 +52,16 @@ func (s *Scan) RunScan() {
 }
 
 
+func main() {
+	
+	URLs := []string{"https://0a3c00a4034d5eb080078b81008b0066.web-security-academy.net/accountDetails"}
+
+	req := requester.NewRequester("GET", "", "", 7)
+	
+	scan := NewScan(URLs, 2, true, req)
+
+	scan.RunScan()
+
+
+
+}
