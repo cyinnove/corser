@@ -96,9 +96,15 @@ func (s *Scanner) performRequest(origin string, result *ScanResult, mutex *sync.
 
 func evaluateResponse(origin, acao, acac string) (bool, string) {
 	if vulnerable, detail := checkOriginReflected(origin, acao, acac); vulnerable {
+		fmt.Println(origin)
 		return true, detail
 	}
-	if vulnerable, detail := checkWildCard(acao, origin); vulnerable {
+	if vulnerable, detail := checkWildCard(acao); vulnerable {
+		fmt.Println(origin)
+		return true, detail
+	} 
+	if vulnerable, detail := checkNullOriginAllowed(acao); vulnerable {
+		fmt.Println(origin)
 		return true, detail
 	}
 	return false, ""
@@ -112,9 +118,8 @@ func generateTestOrigins(parts []string) []string {
 	origins = append(origins, prefix(parts)...)
 	origins = append(origins, suffix(parts)...)
 	origins = append(origins, notEscapeDot(parts)...)
-	origins = append(origins, null()...)
 	origins = append(origins, thirdParties()...)
-	origins = append(origins, specialChars(parts)...)
+	//origins = append(origins, specialChars(parts)...)
 
 	return origins
 }
@@ -133,9 +138,9 @@ func checkOriginReflected(origin, acao, acac string) (bool, string) {
 	return false, ""
 }
 
-func checkWildCard(acao, origin string) (bool, string) {
+func checkWildCard(acao string) (bool, string) {
 	if acao == "*" {
-		details := fmt.Sprintf("Potentially vulnerable CORS configuration found. Wildcard ACAO header found. %s for this payload %s", acao, origin)
+		details := fmt.Sprintf("Potentially vulnerable CORS configuration found. Wildcard ACAO header found. %s", acao)
 
 		return true, details 
 	}
@@ -217,10 +222,14 @@ func notEscapeDot(parts []string) []string {
 	return origins
 }
 
-func null() []string {
-	origins := []string{"null"}
-	return origins
+func checkNullOriginAllowed(acao string) (bool, string) {
+	if acao == "null" {
+		detail := "Null origin allowed in ACAO header, potentially exposing resources to any website if a browser allows null origins."
+		return true, detail
+	}
+	return false, ""
 }
+
 
 func thirdParties() []string {
 	origins := []string{
