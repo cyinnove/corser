@@ -4,36 +4,24 @@ import (
     "flag"
     "fmt"
     "os"
-    "strings"
-    "corser/runner" // Make sure this import path is correct for your project.
+    "corser/runner" 
 	"corser/utils"
 )
 
-func parseHeaders(headerStr string) map[string]string {
-    headers := make(map[string]string)
-    pairs := strings.Split(headerStr, ",")
-    for _, pair := range pairs {
-        parts := strings.SplitN(pair, ":", 2)
-        if len(parts) == 2 {
-            headers[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
-        }
-    }
-    return headers
-}
+
 
 func main() {
     // Define flags
-    urlFlag := flag.String("url", "", "URL to scan for CORS misconfigurations.")
-    fileFlag := flag.String("file", "", "File containing URLs to scan, one per line.")
-    originFlag := flag.String("origin", "http://example.com", "Origin header value to use in the scan.")
-    headersFlag := flag.String("headers", "", "Comma-separated list of custom headers to include in the scan. Format: key:value,key2:value2")
+    urlFlag := flag.String("url", "", "Specifies the URL to scan for CORS misconfigurations.")
+    methodFlag := flag.String("x", "GET", "Specifies the HTTP method to use when sending requests.")
+    timeoutFlag := flag.Int("t", 5, "Sets the timeout (in seconds) for each request.")
+    clevelFlag := flag.Int("c", 10, "Determines the concurrency level, i.e., the number of concurrent requests to make.")
+    cookieFlag := flag.String("cookie", "", "Defines cookies to include in the scan requests. Format as a single string (e.g., 'sessionId=abc123; token=xyz').")
+    fileFlag := flag.String("file", "", "Specifies a file path containing URLs to scan, with one URL per line.")
+    originFlag := flag.String("origin", "http://zomasec.io", "Sets the Origin header value to use in the scan requests.")
+    headerFlag := flag.String("header", "", "Specifies additional headers to include in the scan requests. Format as a single string (e.g., 'X-Custom-Header=Value').")
 
-    // Parse the flags
     flag.Parse()
-
-    // Parse custom headers if provided
-    headers := parseHeaders(*headersFlag)
-
     // URLs slice to hold either single URL or URLs from the file
     var urls []string
 
@@ -50,7 +38,7 @@ func main() {
     }
 
     // Run the scanner for the URLs
-    r := runner.NewRunner(urls, *originFlag, headers) // Adjust NewRunner accordingly.
+    r := runner.NewRunner(urls, *methodFlag, *headerFlag, *originFlag, *cookieFlag, *timeoutFlag, *clevelFlag) 
     err := r.Start()
     if err != nil {
         fmt.Printf("Error running scan: %s\n", err)

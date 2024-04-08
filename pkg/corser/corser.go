@@ -1,17 +1,20 @@
 package corser
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
+	"time"
+	"net"
+	"corser/utils"
 	"github.com/zomasec/tld"
-	//"github.com/zomasec/logz"
+	"github.com/zomasec/logz"
 )
 
-//var logger = logz.DefaultLogs()
+var logger = logz.DefaultLogs()
 
-type ScanResult struct {
+type Result struct {
 	URL          string
 	Vulnerable   bool
 	Details      []string
@@ -21,26 +24,53 @@ type ScanResult struct {
 type Scanner struct {
 	URL     string
 	Origin  string
-	Headers map[string]string
+	Method  string
+	Cookies string
+	Header  string 
+	Timeout int
+	Client *http.Client
+	
 }
 
-func NewScanner(url, origin string, headers map[string]string) *Scanner {
+func NewScanner(url, method, header, origin, cookies string, timeout int) *Scanner {
+	
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		Dial: (&net.Dialer{
+			Timeout:   5 * time.Second, // Timeout for establishing the connection
+			KeepAlive: 5 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 5 * time.Second, // Timeout for TLS handshake
+	}
+
+	client := http.Client{
+		Timeout:   time.Duration(timeout) * time.Second,
+		Transport: transport,
+	}
+	
 	return &Scanner{
 		URL:     url,
 		Origin:  origin,
-		Headers: headers,
+		Method: method,
+		Cookies: cookies,
+		Timeout: timeout,
+		Header: header,
+		Client: &client,
 	}
 }
 
-func (s *Scanner) Scan() *ScanResult {
-	result := &ScanResult{URL: s.URL}
+func (s *Scanner) Scan() *Result {
+
+	result := &Result{URL: s.URL}
+
 	s.RequestCheck(result)
 	s.preflightRequest(result)
+	
 	deduplicateDetails(result)
 	return result
 }
 
-func deduplicateDetails(result *ScanResult) {
+func deduplicateDetails(result *Result) {
     detailsMap := make(map[string]bool)
     uniqueDetails := []string{}
 
@@ -54,7 +84,7 @@ func deduplicateDetails(result *ScanResult) {
     result.Details = uniqueDetails
 }
 
-func (s *Scanner) RequestCheck(result *ScanResult) {
+func (s *Scanner) RequestCheck(result *Result) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
@@ -75,20 +105,34 @@ func (s *Scanner) RequestCheck(result *ScanResult) {
 	wg.Wait()
 }
 
-func (s *Scanner) performRequest(origin string, result *ScanResult, mutex *sync.Mutex) {
-	req, err := http.NewRequest("GET", s.URL, nil)
+func (s *Scanner) performRequest(origin string, result *Result, mutex *sync.Mutex) {
+	
+	
+	req, err := http.NewRequest(s.Method, s.URL, nil)
 	if err != nil {
 		mutex.Lock()
 		result.ErrorMessage = fmt.Sprintf("Error creating request: %v", err)
 		mutex.Unlock()
 		return
 	}
+
 	req.Header.Add("Origin", origin)
-	for key, value := range s.Headers {
+	
+	if s.Header != "" {
+		key, value, err := utils.ParseHeader(s.Header)
+		if err != nil {
+			logger.ERROR("%s", err.Error())
+		}
 		req.Header.Add(key, value)
+
+	}
+	
+	if s.Cookies != "" {
+		req.Header.Add("Cookie", s.Cookies)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+
+	resp, err := s.Client.Do(req)
 	if err != nil {
 		mutex.Lock()
 		result.ErrorMessage = fmt.Sprintf("Error performing request: %v", err)
@@ -100,29 +144,34 @@ func (s *Scanner) performRequest(origin string, result *ScanResult, mutex *sync.
 	acac := resp.Header.Get("Access-Control-Allow-Credentials")
 	acao := resp.Header.Get("Access-Control-Allow-Origin")
 
-	vulnerable, detail := evaluateResponse(origin, acao, acac)
+	vulnerable, details := evaluateResponse(origin, acao, acac)
 	if vulnerable {
 		mutex.Lock()
 		result.Vulnerable = true
-		result.Details = append(result.Details, detail)
+		result.Details = append(result.Details, details...)
 		mutex.Unlock()
 	}
 }
 
-func evaluateResponse(origin, acao, acac string) (bool, string) {
+func evaluateResponse(origin, acao, acac string) (bool, []string) {
+	details := make([]string, 0)	
+	
 	if vulnerable, detail := checkOriginReflected(origin, acao, acac); vulnerable {
-		fmt.Println(origin)
-		return true, detail
+		
+		details = append(details, detail)
 	}
 	if vulnerable, detail := checkWildCard(acao); vulnerable {
-		fmt.Println(origin)
-		return true, detail
+		
+		details = append(details, detail)
 	} 
 	if vulnerable, detail := checkNullOriginAllowed(acao); vulnerable {
-		fmt.Println(origin)
-		return true, detail
+		details = append(details, detail)
 	}
-	return false, ""
+
+	if len(details) > 0 {
+		return true, details
+	}
+	return false, []string{}
 }
 
 func generateTestOrigins(parts []string) []string {
@@ -134,7 +183,7 @@ func generateTestOrigins(parts []string) []string {
 	origins = append(origins, suffix(parts)...)
 	origins = append(origins, notEscapeDot(parts)...)
 	origins = append(origins, thirdParties()...)
-	//origins = append(origins, specialChars(parts)...)
+	origins = append(origins, specialChars(parts)...)
 
 	return origins
 }
@@ -164,34 +213,32 @@ func checkWildCard(acao string) (bool, string) {
 }
 
 // preflightRequestCheck performs a preflight request to see how it's handled.
-func (s *Scanner) preflightRequest(result *ScanResult) {
+func (s *Scanner) preflightRequest(result *Result) {
 	req, err := http.NewRequest("OPTIONS", s.URL, nil)
 	if err != nil {
 		result.ErrorMessage = err.Error()
 		return
 	}
 	req.Header.Add("Origin", s.Origin)
-	req.Header.Add("Access-Control-Request-Method", "GET")
-	for key, value := range s.Headers {
-		req.Header.Add(key, value)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
+	req.Header.Add("Access-Control-Request-Method", s.Method)
+	
+	resp, err := s.Client.Do(req)
 	if err != nil {
 		result.ErrorMessage = err.Error()
 		return
 	}
 	defer resp.Body.Close()
 
+	// Check for ACAO, ACAC, and other relevant headers
 	acao := resp.Header.Get("Access-Control-Allow-Origin")
-	acah := resp.Header.Get("Access-Control-Allow-Headers")
+	acac := resp.Header.Get("Access-Control-Allow-Credentials")
 
-	if acao == s.Origin && strings.Contains(acah, "X-ZOMASEC") {
+	// Enhanced CORS policy checks
+	if acao == "*" && acac == "true" {
 		result.Vulnerable = true
-		result.Details = append(result.Details, "Preflight request improperly allows custom headers.")
-	}
+		result.Details = append(result.Details, "Misconfigured CORS: Wildcard ACAO with ACAC true.")
+	} 
 
-	//logger.DEBUG("Preflight Request Check - ACAO: %s, ACAH: %s", acao, acah)
 }
 
 func netParser(url string) ([]string, error) {

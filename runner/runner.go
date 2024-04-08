@@ -1,49 +1,74 @@
 package runner
 
 import (
-    "corser/pkg/corser" // Ensure this import path matches your project structure
-    "fmt"
+	"corser/pkg/corser" // Ensure this import path matches your project structure
+	"fmt"
+	"sync"
 )
 
 // Runner coordinates scans, now also includes origin and headers for customization.
 type Runner struct {
-    URLs    []string
-    Origin  string
-    Headers map[string]string
+    URLs     []string
+	Origin  string
+	Method  string
+	Cookies string
+	Timeout int
+    CLevel  int
+	Header string
 }
 
+
+
 // NewRunner creates a new Runner instance capable of scanning multiple URLs with custom settings.
-func NewRunner(urls []string, origin string, headers map[string]string) *Runner {
+func NewRunner(urls []string, method, header, origin, cookies string, timeout, cLevel int) *Runner {
     return &Runner{
-        URLs:    urls,
-        Origin:  origin,
-        Headers: headers,
+        URLs:     urls,
+		Origin:  origin,
+		Method: method,
+		Cookies: cookies,
+		Timeout: timeout,
+        CLevel: cLevel,
+		Header: header,
     }
 }
 
 // Start begins the scanning process for all provided URLs with the specified origin and headers.
 func (r *Runner) Start() error {
-    for _, url := range r.URLs {
-        // Pass the origin and headers to the scanner
-        scanner := corser.NewScanner(url, r.Origin, r.Headers)
-        result := scanner.Scan()
+	var wg sync.WaitGroup
+	clevel := make(chan struct{}, r.CLevel) // Control the concurrency level
 
-        fmt.Printf("Scan result for: %s\n", result.URL)
-        fmt.Printf("Vulnerable: %t\n", result.Vulnerable)
+	for _, url := range r.URLs {
+		clevel <- struct{}{} 
+		wg.Add(1)
+		
+		go func(u string) {
+			defer wg.Done()
+			defer func() { <-clevel }() // Release the slot
 
-        // Displaying details about the scan results.
-        if result.Vulnerable && len(result.Details) > 0 {
-            fmt.Println("Details:")
-            for _, detail := range result.Details {
-                fmt.Printf("- %s\n", detail)
-            }
-        }
+			// Assuming NewScanner's correct parameters are url and origin for simplicity
+			// Adjust parameters as per your actual NewScanner function
+            scanner := corser.NewScanner(u, r.Method,  r.Header, r.Origin, r.Origin, r.Timeout)
+			result := scanner.Scan()
 
-        if result.ErrorMessage != "" {
-            fmt.Printf("Error: %s\n", result.ErrorMessage)
-        }
+			fmt.Printf("Scan result for: %s\n", result.URL)
+			fmt.Printf("Vulnerable: %t\n", result.Vulnerable)
 
-        fmt.Println("--------------------------------------------------")
-    }
-    return nil
+			// Displaying details about the scan results
+			if result.Vulnerable && len(result.Details) > 0 {
+				fmt.Println("Details:")
+				for _, detail := range result.Details {
+					fmt.Printf("- %s\n", detail)
+				}
+			}
+
+			if result.ErrorMessage != "" {
+				fmt.Printf("Error: %s\n", result.ErrorMessage)
+			}
+
+			fmt.Println("--------------------------------------------------")
+		}(url) 
+	}
+
+	wg.Wait() 
+	return nil 
 }
