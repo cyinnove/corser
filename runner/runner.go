@@ -1,79 +1,49 @@
 package runner
 
 import (
-	"bufio"
-	"os"
-	"strings"
-	"time"
-
-	"corser/pkg/corser"
-	"corser/pkg/requester"
+    "corser/pkg/corser" // Ensure this import path matches your project structure
+    "fmt"
 )
 
+// Runner coordinates scans, now also includes origin and headers for customization.
 type Runner struct {
-	CORSER  corser.Scan
-	Request requester.Request
+    URLs    []string
+    Origin  string
+    Headers map[string]string
 }
 
-func NewRunner() *Runner {
+// NewRunner creates a new Runner instance capable of scanning multiple URLs with custom settings.
+func NewRunner(urls []string, origin string, headers map[string]string) *Runner {
     return &Runner{
-        Request: requester.Request{},
-        CORSER: corser.Scan{},
+        URLs:    urls,
+        Origin:  origin,
+        Headers: headers,
     }
 }
 
-func (r *Runner) RunScan(cLevel int, wildcard bool, method string, header string, cookies string, timeout int) {
+// Start begins the scanning process for all provided URLs with the specified origin and headers.
+func (r *Runner) Start() error {
+    for _, url := range r.URLs {
+        // Pass the origin and headers to the scanner
+        scanner := corser.NewScanner(url, r.Origin, r.Headers)
+        result := scanner.Scan()
 
-	r.CORSER.ConcurrencyLevel = cLevel
-	r.CORSER.Wildcard = wildcard
-	r.Request.Method = method
-	r.Request.Header = header
-	r.Request.Cookies = cookies
-	r.Request.Timeout = time.Duration(timeout)
+        fmt.Printf("Scan result for: %s\n", result.URL)
+        fmt.Printf("Vulnerable: %t\n", result.Vulnerable)
 
-	r.CORSER.RunScan()
+        // Displaying details about the scan results.
+        if result.Vulnerable && len(result.Details) > 0 {
+            fmt.Println("Details:")
+            for _, detail := range result.Details {
+                fmt.Printf("- %s\n", detail)
+            }
+        }
 
-}
+        if result.ErrorMessage != "" {
+            fmt.Printf("Error: %s\n", result.ErrorMessage)
+        }
 
-func (r *Runner) ReadURLsFromFile(filename string) error {
-
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		url := strings.TrimSpace(scanner.Text())
-		if url != "" {
-			r.CORSER.URLs = append(r.CORSER.URLs, url)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *Runner) ReadURLsFromStdin() error {
-	// Read URLs from standard input
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		url := strings.TrimSpace(scanner.Text())
-		if url != "" {
-			r.CORSER.URLs = append(r.CORSER.URLs, url)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
+        fmt.Println("--------------------------------------------------")
+    }
+    return nil
 }

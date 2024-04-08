@@ -1,67 +1,117 @@
 package corser
 
 import (
-	requester "corser/pkg/requester"
 	"fmt"
-	"io"
-	"os"
-	"sync"
+	"net/http"
+	"strings"
+
+	"github.com/zomasec/logz"
 )
 
-type Scan struct {
-	Request          *requester.Request
-	URLs             []string
-	ConcurrencyLevel int
-	Wildcard         bool
-	Errors           chan error
-	//	Delay 		*time.Duration
-	//Proxy		string
+var (
+	logger = logz.DefaultLogs()
+)
+
+// ScanResult holds the outcome of a scan.
+type ScanResult struct {
+	URL          string
+	Vulnerable   bool
+	Details      []string // Add details for more informative output.
+	ErrorMessage string
 }
 
-type Result struct {
-	OutputFile *os.File
-	StdOut     *io.Writer
+// Scanner scans for CORS misconfigurations.
+type Scanner struct {
+	URL    string
+	Origin string
+	Headers map[string]string
 }
 
-func NewScan(urls []string, concurrencyLevel int, wildcard bool, requester *requester.Request) *Scan {
-	return &Scan{URLs: urls, ConcurrencyLevel: concurrencyLevel, Wildcard: wildcard, Request: requester, Errors: make(chan error, concurrencyLevel)}
+// NewScanner creates a new Scanner instance with customizable origin and headers.
+func NewScanner(url, origin string, headers map[string]string) *Scanner {
+	return &Scanner{
+		URL:     url,
+		Origin:  origin,
+		Headers: headers,
+	}
 }
 
-func (s *Scan) RunScan() {
-	var wg sync.WaitGroup
+// Scan performs the CORS misconfiguration scan.
+func (s *Scanner) Scan() *ScanResult {
+	result := &ScanResult{URL: s.URL}
 
-	cLevel := make(chan struct{}, s.ConcurrencyLevel)
-	client := s.Request.SetClient()
+	// Initial simple request to check for basic misconfigurations.
+	s.simpleRequestCheck(result)
 
-	for _, URL := range s.URLs {
-		wg.Add(1)
-		go func(URL string) {
-			defer wg.Done()
-			cLevel <- struct{}{}
-			defer func() { <-cLevel }()
-			s.Request.ScanTester(client, URL, s.Wildcard)
-		}(URL)
+	// Preflight request to check how preflighted requests are handled.
+	s.preflightRequestCheck(result)
+
+	return result
+}
+
+// simpleRequestCheck checks for basic CORS misconfigurations.
+func (s *Scanner) simpleRequestCheck(result *ScanResult) {
+	req, err := http.NewRequest("GET", s.URL, nil)
+	if err != nil {
+		result.ErrorMessage = err.Error()
+		return
+	}
+	req.Header.Add("Origin", s.Origin)
+	for key, value := range s.Headers {
+		req.Header.Add(key, value)
 	}
 
-	wg.Wait()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		result.ErrorMessage = err.Error()
+		return
+	}
+	defer resp.Body.Close()
 
-	for e := range s.Errors {
-		fmt.Println(e)
+	acac := resp.Header.Get("Access-Control-Allow-Credentials")
+	acao := resp.Header.Get("Access-Control-Allow-Origin")
+
+	// Check for ACAC and ACAO misconfiguration.
+	if acao == s.Origin || acac == "true" {
+		result.Vulnerable = true
+		result.Details = append(result.Details, fmt.Sprintf("ACAO Header: %s, ACAC Header: %s", acao, acac))
 	}
 
+	if acao == "*" {
+		result.Vulnerable = true
+		result.Details = append(result.Details, "Wildcard ACAO header found.")
+	}
+
+	logger.DEBUG("Simple Request Check - ACAO: %s, ACAC: %s", acao, acac)
 }
 
-// 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
-func main() {
-	
-	URLs := []string{"https://0a3c00a4034d5eb080078b81008b0066.web-security-academy.net/accountDetails"}
+// preflightRequestCheck performs a preflight request to see how it's handled.
+func (s *Scanner) preflightRequestCheck(result *ScanResult) {
+	req, err := http.NewRequest("OPTIONS", s.URL, nil)
+	if err != nil {
+		result.ErrorMessage = err.Error()
+		return
+	}
+	req.Header.Add("Origin", s.Origin)
+	req.Header.Add("Access-Control-Request-Method", "GET")
+	for key, value := range s.Headers {
+		req.Header.Add(key, value)
+	}
 
-	req := requester.NewRequester("GET", "", "", 7)
-	
-	scan := NewScan(URLs, 2, true, req)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		result.ErrorMessage = err.Error()
+		return
+	}
+	defer resp.Body.Close()
 
-	scan.RunScan()
-//
+	acao := resp.Header.Get("Access-Control-Allow-Origin")
+	acah := resp.Header.Get("Access-Control-Allow-Headers")
 
+	if acao == s.Origin && strings.Contains(acah, "X-Custom-Header") {
+		result.Vulnerable = true
+		result.Details = append(result.Details, "Preflight request improperly allows custom headers.")
+	}
 
+	logger.DEBUG("Preflight Request Check - ACAO: %s, ACAH: %s", acao, acah)
 }

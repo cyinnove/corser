@@ -1,45 +1,59 @@
 package main
 
-
 import (
-
-	"flag"
-	"github.com/zomasec/logz"
-	"corser/runner"
+    "flag"
+    "fmt"
+    "os"
+    "strings"
+    "corser/runner" // Make sure this import path is correct for your project.
+	"corser/utils"
 )
 
-
-var logger = logz.DefaultLogs()
-
+func parseHeaders(headerStr string) map[string]string {
+    headers := make(map[string]string)
+    pairs := strings.Split(headerStr, ",")
+    for _, pair := range pairs {
+        parts := strings.SplitN(pair, ":", 2)
+        if len(parts) == 2 {
+            headers[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+        }
+    }
+    return headers
+}
 
 func main() {
+    // Define flags
+    urlFlag := flag.String("url", "", "URL to scan for CORS misconfigurations.")
+    fileFlag := flag.String("file", "", "File containing URLs to scan, one per line.")
+    originFlag := flag.String("origin", "http://example.com", "Origin header value to use in the scan.")
+    headersFlag := flag.String("headers", "", "Comma-separated list of custom headers to include in the scan. Format: key:value,key2:value2")
 
-	cLevel := flag.Int("c", 30, "Concurrency level or the number of workers to use.")
-	checkWildcard := flag.Bool("wc", false, "Enable to check the wildcard in Access-Control-Allow-Origin.")
-	header := flag.String("H", "", "Custom header added to each request.")
-	method := flag.String("m", "GET", "Specific method name requested with it in each request.")
-	cookies := flag.String("cookies", "", "Add cookies to each request to access authenticated pages.")
-	list := flag.String("l", "", "List of URLs to scan.")
-	timeout := flag.Int("timeout", 5, "Timeout for each request")
+    // Parse the flags
+    flag.Parse()
 
-	flag.Parse()
-	
-	runner := runner.NewRunner()
+    // Parse custom headers if provided
+    headers := parseHeaders(*headersFlag)
 
+    // URLs slice to hold either single URL or URLs from the file
+    var urls []string
 
-	if *list != "" {
-		if err := runner.ReadURLsFromFile(*list); err != nil {
-			logger.FATAL("Error reading from a file %s , %v\n", *list, err)
-		}
+    // Check if the file flag is provided
+    if *fileFlag != "" {
+       urls = append(urls, utils.ReadFileLines(*fileFlag)...)
+    } else if *urlFlag != "" {
+        // Single URL provided
+        urls = append(urls, *urlFlag)
+    } else {
+        fmt.Println("Usage: cors-scanner -url <URL> or cors-scanner -file <file path> [-origin <Origin>] [-headers <Headers>]")
+        flag.PrintDefaults()
+        os.Exit(1)
+    }
 
-	} else {
-		if err := runner.ReadURLsFromStdin(); err != nil {
-			logger.FATAL("Error reading from Stdin")
-		}
-	}
-
-
-	runner.RunScan(*cLevel, *checkWildcard, *method, *header, *cookies, *timeout)
-
-
+    // Run the scanner for the URLs
+    r := runner.NewRunner(urls, *originFlag, headers) // Adjust NewRunner accordingly.
+    err := r.Start()
+    if err != nil {
+        fmt.Printf("Error running scan: %s\n", err)
+        os.Exit(1)
+    }
 }
