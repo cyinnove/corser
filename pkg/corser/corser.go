@@ -34,12 +34,27 @@ func NewScanner(url, origin string, headers map[string]string) *Scanner {
 
 func (s *Scanner) Scan() *ScanResult {
 	result := &ScanResult{URL: s.URL}
-	s.simpleRequestCheck(result)
+	s.RequestCheck(result)
 	s.preflightRequest(result)
+	deduplicateDetails(result)
 	return result
 }
 
-func (s *Scanner) simpleRequestCheck(result *ScanResult) {
+func deduplicateDetails(result *ScanResult) {
+    detailsMap := make(map[string]bool)
+    uniqueDetails := []string{}
+
+    for _, detail := range result.Details {
+        if _, exists := detailsMap[detail]; !exists {
+            detailsMap[detail] = true
+            uniqueDetails = append(uniqueDetails, detail)
+        }
+    }
+
+    result.Details = uniqueDetails
+}
+
+func (s *Scanner) RequestCheck(result *ScanResult) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
