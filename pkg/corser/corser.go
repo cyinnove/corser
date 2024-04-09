@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 	"net"
-	"corser/utils"
+	"github.com/zomasec/corser/utils"
 	"github.com/zomasec/tld"
 	"github.com/zomasec/logz"
 )
@@ -17,6 +17,7 @@ var logger = logz.DefaultLogs()
 type Result struct {
 	URL          string
 	Vulnerable   bool
+	Payload		 string
 	Details      []string
 	ErrorMessage string
 }
@@ -148,6 +149,7 @@ func (s *Scanner) performRequest(origin string, result *Result, mutex *sync.Mute
 	if vulnerable {
 		mutex.Lock()
 		result.Vulnerable = true
+		result.Payload = origin
 		result.Details = append(result.Details, details...)
 		mutex.Unlock()
 	}

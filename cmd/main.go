@@ -4,22 +4,24 @@ import (
     "flag"
     "fmt"
     "os"
-    "corser/runner" 
-	"corser/utils"
+    "github.com/zomasec/corser/runner" 
+	"github.com/zomasec/corser/utils"
 )
 
 
 
 func main() {
-    // Define flags
+
     urlFlag := flag.String("url", "", "Specifies the URL to scan for CORS misconfigurations.")
-    methodFlag := flag.String("x", "GET", "Specifies the HTTP method to use when sending requests.")
-    timeoutFlag := flag.Int("t", 5, "Sets the timeout (in seconds) for each request.")
+    methodFlag := flag.String("method", "GET", "Specifies the HTTP method to use when sending requests.")
+    timeoutFlag := flag.Int("timeout", 5, "Sets the timeout (in seconds) for each request.")
     clevelFlag := flag.Int("c", 10, "Determines the concurrency level, i.e., the number of concurrent requests to make.")
     cookieFlag := flag.String("cookie", "", "Defines cookies to include in the scan requests. Format as a single string (e.g., 'sessionId=abc123; token=xyz').")
-    fileFlag := flag.String("file", "", "Specifies a file path containing URLs to scan, with one URL per line.")
+    fileFlag := flag.String("l", "", "Specifies a file path containing URLs to scan, with one URL per line.")
     originFlag := flag.String("origin", "http://zomasec.io", "Sets the Origin header value to use in the scan requests.")
     headerFlag := flag.String("header", "", "Specifies additional headers to include in the scan requests. Format as a single string (e.g., 'X-Custom-Header=Value').")
+    // pocFlag := flag.Bool("poc", false, "Generate poc for any vuln request with the name of the url, result found  ")
+    // pocFileFlag := flag.String("pf")
 
     flag.Parse()
     // URLs slice to hold either single URL or URLs from the file

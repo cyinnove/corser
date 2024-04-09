@@ -1,9 +1,16 @@
 package runner
 
 import (
-	"corser/pkg/corser" // Ensure this import path matches your project structure
-	"fmt"
+	"github.com/zomasec/corser/pkg/corser" // Ensure this import path matches your project structure
+    "github.com/zomasec/logz"
+	//"github.com/zomasec/corser/pkg/pocgen"
+    "fmt"
 	"sync"
+)
+
+var (
+    logger = logz.DefaultLogs()
+    
 )
 
 // Runner coordinates scans, now also includes origin and headers for customization.
@@ -50,12 +57,12 @@ func (r *Runner) Start() error {
             scanner := corser.NewScanner(u, r.Method,  r.Header, r.Origin, r.Origin, r.Timeout)
 			result := scanner.Scan()
 
-			fmt.Printf("Scan result for: %s\n", result.URL)
-			fmt.Printf("Vulnerable: %t\n", result.Vulnerable)
-
 			// Displaying details about the scan results
 			if result.Vulnerable && len(result.Details) > 0 {
-				fmt.Println("Details:")
+                logger.DEBUG("Scan result for: %s\n", result.URL)
+                logger.DEBUG("Vulnerable: %t\n", result.Vulnerable)
+                logger.DEBUG("Payload: %s\n", result.Payload)
+				logger.DEBUG("Details:")
 				for _, detail := range result.Details {
 					fmt.Printf("- %s\n", detail)
 				}
