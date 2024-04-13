@@ -163,7 +163,7 @@ func main() {
 
 	app2 := gin.Default()
 
-	app2.Use(handleCORS_Rege0x1())
+	app2.Use(handleCORS_Null())
 	app2.GET("/api/2", func(ctx *gin.Context) {
 		// Handle sensitive data
 		ctx.JSON(http.StatusOK, gin.H{

@@ -66,7 +66,7 @@ func (r *Options) Start() error {
 			if result.Vulnerable && len(result.Details) > 0 {
 				logz.NewLogger("vuln", logz.Blue, result.URL).Log()
 				for _, detail := range result.Details {
-					fmt.Printf("\t %s-%s %s%s%s\n", logz.Green, logz.NC ,logz.Purple ,detail, logz.NC)
+					fmt.Printf("\t %s-%s %s%s%s\n", logz.Yellow, logz.NC ,logz.Green ,detail, logz.NC)
 				}
 			}
 

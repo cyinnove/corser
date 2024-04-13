@@ -207,9 +207,9 @@ func checkOriginReflected(payload, acao, acac string) (bool, string) {
 	if acao == payload || acac == "true" {
 		
 		if acac == "" {
-			detail = fmt.Sprintf("ACAO Header: %s", acao)
+			detail = fmt.Sprintf("%sACAO Header:%s %s",logz.Green, logz.NC, acao)
 		} else {
-			detail = fmt.Sprintf("ACAO Header: %s, ACAC Header: %s", acao, acac)
+			detail = fmt.Sprintf("%sACAO Header:%s %s, ACAC Header: %s",logz.Green, logz.NC, acao, acac)
 		}
 		
 		return true, detail

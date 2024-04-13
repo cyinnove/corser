@@ -42,16 +42,13 @@ func (s *Scanner) Prefix() string {
 func (s *Scanner) Wildcard() {
 	
 	// Don't forget to use netParser
-	// payload => https://zomasec.io/.target.com
-	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/.%s.%s",s.Origin, s.Host.Domain, s.Host.TLD)) 
+	// payload => https://zomasec.io/sub.target.com
+	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/%s.%s.%s",s.Origin, s.Host.Subdomains, s.Host.Domain, s.Host.TLD)) 
 	
-	// payload => http://zomasec.io/.target.com
-	s.Payloads = append(s.Payloads, fmt.Sprintf("http://%s/.%s.%s",s.Origin, s.Host.Domain, s.Host.TLD)) 
-		// payload => https://zomasec.io/target.com
+	// payload => https://zomasec.io/target.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/%s.%s",s.Origin, s.Host.Domain, s.Host.TLD))
 	
-	// payload => http://zomasec.io/target.com
-    s.Payloads = append(s.Payloads, fmt.Sprintf("http://%s/%s.%s",s.Origin, s.Host.Domain, s.Host.TLD)) 
+
 }
 
 func (s *Scanner) Suffix() {
