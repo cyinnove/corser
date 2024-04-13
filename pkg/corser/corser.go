@@ -8,7 +8,7 @@ import (
 	"time"
 	"net"
 	"github.com/zomasec/corser/utils"
-	"github.com/zomasec/tld"
+
 	"github.com/zomasec/logz"
 )
 
@@ -27,13 +27,21 @@ type Scanner struct {
 	Origin  string
 	Method  string
 	Cookies string
-	Header  string 
+	Header  string
+	DeepScan bool
+	Payloads []string 
 	Timeout int
+	Host    *Host
 	Client *http.Client
 	
 }
+type Host struct {
+	Domain     string
+	TLD        string
+	Subdomains string
+}
 
-func NewScanner(url, method, header, origin, cookies string, timeout int) *Scanner {
+func NewScanner(url, method, header, origin, cookies string,isDeep bool, timeout int) *Scanner {
 	
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -56,6 +64,7 @@ func NewScanner(url, method, header, origin, cookies string, timeout int) *Scann
 		Cookies: cookies,
 		Timeout: timeout,
 		Header: header,
+		DeepScan: isDeep,
 		Client: &client,
 	}
 }
@@ -63,9 +72,18 @@ func NewScanner(url, method, header, origin, cookies string, timeout int) *Scann
 func (s *Scanner) Scan() *Result {
 
 	result := &Result{URL: s.URL}
+	s.preflightRequest(result)
+	if result.ErrorMessage != "" {
+		return &Result{
+			URL: s.URL,
+			Vulnerable: false,
+			Details: []string{},
+			ErrorMessage: "URL not alive or an error in request",
+		}
+	}
 
 	s.RequestCheck(result)
-	s.preflightRequest(result)
+	
 	
 	deduplicateDetails(result)
 	return result
@@ -89,24 +107,28 @@ func (s *Scanner) RequestCheck(result *Result) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	parts, err := netParser(s.URL)
-	if err != nil {
-		result.ErrorMessage = fmt.Sprintf("Error parsing URL: %v", err)
-		return
+	s.Host, _ = NetParser(s.URL)
+	s.anyOrigin()
+	s.Prefix()
+	s.Wildcard()
+	s.Null()
+	s.Suffix()
+
+	if s.DeepScan {
+		s.SpecialChars()
 	}
 
-	testOrigins := generateTestOrigins(parts)
-	for _, testOrigin := range testOrigins {
+	for _, payload := range s.Payloads {
 		wg.Add(1)
 		go func(origin string) {
 			defer wg.Done()
 			s.performRequest(origin, result, &mutex)
-		}(testOrigin)
+		}(payload)
 	}
 	wg.Wait()
 }
 
-func (s *Scanner) performRequest(origin string, result *Result, mutex *sync.Mutex) {
+func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mutex) {
 	
 	
 	req, err := http.NewRequest(s.Method, s.URL, nil)
@@ -117,12 +139,13 @@ func (s *Scanner) performRequest(origin string, result *Result, mutex *sync.Mute
 		return
 	}
 
-	req.Header.Add("Origin", origin)
+	req.Header.Add("Origin", payload)
 	
 	if s.Header != "" {
 		key, value, err := utils.ParseHeader(s.Header)
 		if err != nil {
-			logger.ERROR("%s", err.Error())
+			result.ErrorMessage = fmt.Sprintf("Error formating error")
+			return
 		}
 		req.Header.Add(key, value)
 
@@ -142,24 +165,23 @@ func (s *Scanner) performRequest(origin string, result *Result, mutex *sync.Mute
 	}
 	defer resp.Body.Close()
 
-	acac := resp.Header.Get("Access-Control-Allow-Credentials")
 	acao := resp.Header.Get("Access-Control-Allow-Origin")
-
-	vulnerable, details := evaluateResponse(origin, acao, acac)
+	acac := resp.Header.Get("Access-Control-Allow-Credentials")
+	
+	vulnerable, details := evaluateResponse(payload, acao, acac)
 	if vulnerable {
 		mutex.Lock()
 		result.Vulnerable = true
-		result.Payload = origin
+		result.Payload = payload
 		result.Details = append(result.Details, details...)
 		mutex.Unlock()
 	}
 }
 
-func evaluateResponse(origin, acao, acac string) (bool, []string) {
+func evaluateResponse(payload, acao, acac string) (bool, []string) {
 	details := make([]string, 0)	
 	
-	if vulnerable, detail := checkOriginReflected(origin, acao, acac); vulnerable {
-		
+	if vulnerable, detail := checkOriginReflected(payload, acao, acac); vulnerable {
 		details = append(details, detail)
 	}
 	if vulnerable, detail := checkWildCard(acao); vulnerable {
@@ -176,27 +198,20 @@ func evaluateResponse(origin, acao, acac string) (bool, []string) {
 	return false, []string{}
 }
 
-func generateTestOrigins(parts []string) []string {
-	var origins []string
-
-	// Generate standard origins based on the domain parts.
-	origins = append(origins, anyOrigin(false)...)
-	origins = append(origins, prefix(parts)...)
-	origins = append(origins, suffix(parts)...)
-	origins = append(origins, notEscapeDot(parts)...)
-	origins = append(origins, thirdParties()...)
-	origins = append(origins, specialChars(parts)...)
-
-	return origins
-}
 
 // checkOriginReflected checks for specific CORS misconfigurations involving the Access-Control-Allow-Origin (ACAO)
 // and Access-Control-Allow-Credentials (ACAC) headers.
-func checkOriginReflected(origin, acao, acac string) (bool, string) {
+func checkOriginReflected(payload, acao, acac string) (bool, string) {
 	// Check for ACAO reflecting the Origin or ACAC set to true.
-	if acao == origin || acac == "true" {
-		detail := fmt.Sprintf("Potentially vulnerable CORS configuration found. ACAO Header: %s, ACAC Header: %s", acao, acac)
-		fmt.Println("vuln")
+	var detail  string
+	if acao == payload || acac == "true" {
+		
+		if acac == "" {
+			detail = fmt.Sprintf("ACAO Header: %s", acao)
+		} else {
+			detail = fmt.Sprintf("ACAO Header: %s, ACAC Header: %s", acao, acac)
+		}
+		
 		return true, detail
 	}
 
@@ -206,7 +221,7 @@ func checkOriginReflected(origin, acao, acac string) (bool, string) {
 
 func checkWildCard(acao string) (bool, string) {
 	if acao == "*" {
-		details := fmt.Sprintf("Potentially vulnerable CORS configuration found. Wildcard ACAO header found. %s", acao)
+		details := fmt.Sprintf("Wildcard ACAO header found. %s", acao)
 
 		return true, details 
 	}
@@ -219,15 +234,16 @@ func (s *Scanner) preflightRequest(result *Result) {
 	req, err := http.NewRequest("OPTIONS", s.URL, nil)
 	if err != nil {
 		result.ErrorMessage = err.Error()
-		return
+		return 
 	}
+
 	req.Header.Add("Origin", s.Origin)
 	req.Header.Add("Access-Control-Request-Method", s.Method)
 	
 	resp, err := s.Client.Do(req)
 	if err != nil {
 		result.ErrorMessage = err.Error()
-		return
+		return 
 	}
 	defer resp.Body.Close()
 
@@ -241,79 +257,15 @@ func (s *Scanner) preflightRequest(result *Result) {
 		result.Details = append(result.Details, "Misconfigured CORS: Wildcard ACAO with ACAC true.")
 	} 
 
-}
-
-func netParser(url string) ([]string, error) {
-	var parsedURLs []string
-
-	URL, err := tld.Parse(url)
-	if err != nil {
-		return nil, err
-	}
-
-	subdomain := URL.Subdomain
-	domain := URL.Domain
-	topLevelDomain := URL.TLD
-
-	parsedURLs = append(parsedURLs, subdomain, domain, topLevelDomain)
-	return parsedURLs, nil
-}
-
-func anyOrigin(wildcard bool) []string {
-	origins := []string{
-		"http://zomasec.io",
-		"https://zomasec.io",
-	}
-
-	if wildcard {
-		origins = append(origins, "*")
-	}
-	return origins
-}
-
-func prefix(parts []string) []string {
-	origins := []string{"https://" + parts[1] + ".zomasec.io", "https://" + parts[1] + "." + parts[2] + ".zomasec.io"}
-	return origins
-}
-
-func suffix(parts []string) []string {
-	origins := []string{"https://" + "zomasec" + parts[1] + "." + parts[2], "https://" + "zomasec.io" + "." + parts[1] + "." + parts[2]}
-	return origins
-}
-
-func notEscapeDot(parts []string) []string {
-	origins := []string{"https://" + parts[0] + "S" + parts[1] + parts[2]}
-	return origins
+ 
 }
 
 func checkNullOriginAllowed(acao string) (bool, string) {
 	if acao == "null" {
-		detail := "Null origin allowed in ACAO header, potentially exposing resources to any website if a browser allows null origins."
+		detail := "Null origin allowed in ACAO header."
 		return true, detail
 	}
 	return false, ""
-}
-
-
-func thirdParties() []string {
-	origins := []string{
-		"http://github.com",
-		"https://google.com",
-		"https://portswigger.net",
-		"http://www.webdevout.net",
-		"https://repl.it",
-	}
-	return origins
-}
-
-func specialChars(parts []string) []string {
-	var origins []string
-	chars := []string{"_", "-", "{", "}", "^", "%60", "!", "~", "`", ";", "|", "&", "(", ")", "*", "'", "\"", "$", "=", "+", "%0b"}
-	for _, char := range chars {
-		origin := fmt.Sprintf("https://%s.%s.%s%s.zomasec.io", parts[0], parts[1], parts[2], char)
-		origins = append(origins, origin)
-	}
-	return origins
 }
 
 
