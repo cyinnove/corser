@@ -3,12 +3,13 @@ package corser
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"sync"
 	"time"
-	"net"
-	"github.com/zomasec/corser/utils"
 
+	"github.com/zomasec/corser/utils"
 	"github.com/zomasec/logz"
 )
 
@@ -32,13 +33,23 @@ type Scanner struct {
 	Payloads []string 
 	Timeout int
 	Host    *Host
+	//ReqData	*PreFlightData
 	Client *http.Client
 	
 }
+// type PreFlightData struct{
+// 	ACAO string
+// 	ACAC string
+// 	Headers []string
+// 	Methods []string
+
+// }
+
 type Host struct {
+	Full 	   string
 	Domain     string
 	TLD        string
-	Subdomains string
+	Subdomain string
 }
 
 func NewScanner(url, method, header, origin, cookies string,isDeep bool, timeout int) *Scanner {
@@ -46,10 +57,10 @@ func NewScanner(url, method, header, origin, cookies string,isDeep bool, timeout
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial: (&net.Dialer{
-			Timeout:   5 * time.Second, // Timeout for establishing the connection
+			Timeout:   5 * time.Second, 
 			KeepAlive: 5 * time.Second,
 		}).Dial,
-		TLSHandshakeTimeout: 5 * time.Second, // Timeout for TLS handshake
+		TLSHandshakeTimeout: 5 * time.Second, 
 	}
 
 	client := http.Client{
@@ -66,6 +77,10 @@ func NewScanner(url, method, header, origin, cookies string,isDeep bool, timeout
 		Header: header,
 		DeepScan: isDeep,
 		Client: &client,
+		// ReqData: &PreFlightData{
+		// 	Methods: make([]string, 0),
+		// 	Headers: make([]string, 0),
+		// },
 	}
 }
 
@@ -73,12 +88,14 @@ func (s *Scanner) Scan() *Result {
 
 	result := &Result{URL: s.URL}
 	s.preflightRequest(result)
+
+	
 	if result.ErrorMessage != "" {
 		return &Result{
 			URL: s.URL,
 			Vulnerable: false,
 			Details: []string{},
-			ErrorMessage: "URL not alive or an error in request",
+			ErrorMessage: fmt.Sprintf("URL not alive or an error in request : %s", result.ErrorMessage),
 		}
 	}
 
@@ -113,8 +130,10 @@ func (s *Scanner) RequestCheck(result *Result) {
 	s.Wildcard()
 	s.Null()
 	s.Suffix()
+	s.JoinTwoice()
 
 	if s.DeepScan {
+		s.UserAtDomain()
 		s.SpecialChars()
 	}
 
@@ -134,7 +153,7 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 	req, err := http.NewRequest(s.Method, s.URL, nil)
 	if err != nil {
 		mutex.Lock()
-		result.ErrorMessage = fmt.Sprintf("Error creating request: %v", err)
+		result.ErrorMessage = fmt.Sprintf("Error creating request: %s", err.Error())
 		mutex.Unlock()
 		return
 	}
@@ -144,7 +163,7 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 	if s.Header != "" {
 		key, value, err := utils.ParseHeader(s.Header)
 		if err != nil {
-			result.ErrorMessage = fmt.Sprintf("Error formating error")
+			result.ErrorMessage = fmt.Sprintf("Error formating error: %s", err.Error())
 			return
 		}
 		req.Header.Add(key, value)
@@ -159,11 +178,17 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 	resp, err := s.Client.Do(req)
 	if err != nil {
 		mutex.Lock()
-		result.ErrorMessage = fmt.Sprintf("Error performing request: %v", err)
+		result.ErrorMessage = fmt.Sprintf("Error performing request: %s", err.Error())
 		mutex.Unlock()
 		return
 	}
 	defer resp.Body.Close()
+
+	_, err = io.Copy(io.Discard, resp.Body)
+    if err != nil {
+		result.ErrorMessage = err.Error()
+		return 
+    }
 
 	acao := resp.Header.Get("Access-Control-Allow-Origin")
 	acac := resp.Header.Get("Access-Control-Allow-Credentials")
@@ -231,14 +256,13 @@ func checkWildCard(acao string) (bool, string) {
 
 // preflightRequestCheck performs a preflight request to see how it's handled.
 func (s *Scanner) preflightRequest(result *Result) {
+	
 	req, err := http.NewRequest("OPTIONS", s.URL, nil)
 	if err != nil {
 		result.ErrorMessage = err.Error()
 		return 
 	}
 
-	req.Header.Add("Origin", s.Origin)
-	req.Header.Add("Access-Control-Request-Method", s.Method)
 	
 	resp, err := s.Client.Do(req)
 	if err != nil {
@@ -247,17 +271,27 @@ func (s *Scanner) preflightRequest(result *Result) {
 	}
 	defer resp.Body.Close()
 
-	// Check for ACAO, ACAC, and other relevant headers
-	acao := resp.Header.Get("Access-Control-Allow-Origin")
-	acac := resp.Header.Get("Access-Control-Allow-Credentials")
+	_, err = io.Copy(io.Discard, resp.Body)
+    if err != nil {
+		result.ErrorMessage = err.Error()
+		return 
+    }
 
-	// Enhanced CORS policy checks
-	if acao == "*" && acac == "true" {
-		result.Vulnerable = true
-		result.Details = append(result.Details, "Misconfigured CORS: Wildcard ACAO with ACAC true.")
-	} 
 
- 
+	//##############
+	//#
+	//# Will be used in the nexet version 
+	//#
+	//##############
+	// s.ReqData.ACAO = resp.Header.Get("Access-Control-Allow-Origin")
+	// s.ReqData.ACAC = resp.Header.Get("Access-Control-Allow-Credentials")
+
+	// //Access-Control-Allow-Headers
+	// s.ReqData.Methods = utils.ParseMethods(resp.Header.Get("Access-Control-Request-Method"))
+
+	// s.ReqData.Headers = utils.ParseHeaders(resp.Header.Get("Access-Control-Request-Headers"))
+
+		
 }
 
 func checkNullOriginAllowed(acao string) (bool, string) {

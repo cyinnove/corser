@@ -10,11 +10,10 @@ import (
 
 var (
 	logger = logz.DefaultLogs()
-	
 )
 
 // Runner coordinates scans, now also includes origin and headers for customization.
-type Options struct {
+type Runner struct {
 	URLs     []string
 	Origin   string
 	Method   string
@@ -27,8 +26,8 @@ type Options struct {
 }
 
 // NewRunner creates a new Runner instance capable of scanning multiple URLs with custom settings.
-func NewOptions(urls []string, method, header, origin, cookies string, isDeep, verbose bool, timeout, cLevel int) *Options {
-	return &Options{
+func NewRunner(urls []string, method, header, origin, cookies string, isDeep, verbose bool, timeout, cLevel int) *Runner {
+	return &Runner{
 		URLs:     urls,
 		Origin:   origin,
 		Method:   method,
@@ -42,7 +41,7 @@ func NewOptions(urls []string, method, header, origin, cookies string, isDeep, v
 }
 
 // Start begins the scanning process for all provided URLs with the specified origin and headers.
-func (r *Options) Start() error {
+func (r *Runner) Start() error {
 	var wg sync.WaitGroup
 	clevel := make(chan struct{}, r.CLevel) // Control the concurrency level
 
@@ -52,6 +51,8 @@ func (r *Options) Start() error {
 	for _, url := range r.URLs {
 		clevel <- struct{}{}
 		wg.Add(1)
+
+		logger.DEBUG("Started scanning for %s", url)
 
 		go func(u string) {
 			defer wg.Done()
