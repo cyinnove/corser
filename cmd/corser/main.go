@@ -1,63 +1,93 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
 	"github.com/zomasec/corser/runner"
 	"github.com/zomasec/corser/utils"
 )
 
-type Options struct {
-    URL       string
-    Method    string
-    Timeout   string
-    Clevel    int
-    Cookies   string
-    List      string
-    DeepScan  bool
-    Origin    string
-    Header    string
-    Verbose   bool
-    Poc       string
+type options struct {
+	url         string
+	method      string
+	timeout     int
+	concurrency int
+	cookie      string
+	file        string
+	deepScan    bool
+	origin      string
+	header      string
+	verbose     bool
+	pocFile     string
 }
 
 func main() {
+	opts := &options{}
 
-	urlFlag := flag.String("url", "", "Specifies the URL to scan for CORS misconfigurations.")
-	methodFlag := flag.String("method", "GET", "Specifies the HTTP method to use when sending requests.")
-	timeoutFlag := flag.Int("timeout", 5, "Sets the timeout (in seconds) for each request.")
-	clevelFlag := flag.Int("c", 10, "Determines the concurrency level, i.e., the number of concurrent requests to make.")
-	cookieFlag := flag.String("cookie", "", "Defines cookies to include in the scan requests. Format as a single string (e.g., 'sessionId=abc123; token=xyz').")
-	fileFlag := flag.String("l", "", "Specifies a file path containing URLs to scan, with one URL per line.")
-	deepScanFlag := flag.Bool("deep", false, "Enable deepscan will use more advanced teqnueqs to bypass CORS Security messures")
-	originFlag := flag.String("origin", "http://zomasec.io", "Sets the Origin header value to use in the scan requests.")
-	headerFlag := flag.String("header", "", "Specifies additional headers to include in the scan requests. Format as a single string (e.g., 'X-Custom-Header=Value').")
-	verboseFlag := flag.Bool("v", false, "Enable Verbose mode to show errors and detailed logs ")
-	pocFileFlag := flag.String("pf", "", "Generate poc for any vuln request with the name of the url, result found  ")
-
-	flag.Parse()
-	// URLs slice to hold either single URL or URLs from the file
-	var urls []string
-
-	// Check if the file flag is provided
-	if *fileFlag != "" {
-		urls = append(urls, utils.ReadFileLines(*fileFlag)...)
-	} else if *urlFlag != "" {
-		// Single URL provided
-		urls = append(urls, *urlFlag)
-	} else {
-		fmt.Fprintln(os.Stderr ,"Usage: cors-scanner -url <URL> or cors-scanner -file <file path> [-origin <Origin>] [-headers <Headers>]")
-		flag.PrintDefaults()
-		os.Exit(1)
+	var rootCmd = &cobra.Command{
+		Use:   "corser",
+		Short: "A tool to scan for CORS misconfigurations.",
 	}
 
-	// Run the scanner for the URLs
-	r := runner.NewRunner(urls, *methodFlag, *headerFlag, *originFlag, *cookieFlag, *deepScanFlag, *verboseFlag, *timeoutFlag, *clevelFlag, *pocFileFlag)
+	// Subcommand for single URL scan
+	var singleCmd = &cobra.Command{
+		Use:   "single",
+		Short: "Performs a scan on a single specified URL",
+		Run: func(cmd *cobra.Command, args []string) {
+			if opts.url == "" {
+				fmt.Fprintln(os.Stderr, "Single scan requires a URL.")
+				os.Exit(1)
+			}
+			urls := []string{opts.url}
+			runScan(urls, opts)
+		},
+	}
+	singleCmd.Flags().StringVarP(&opts.url, "url", "u", "", "Specifies the URL to scan for CORS misconfigurations.")
+	singleCmd.MarkFlagRequired("url")
+	rootCmd.AddCommand(singleCmd)
+
+	// Subcommand for multiple URL scans
+	var multiCmd = &cobra.Command{
+		Use:   "multi",
+		Short: "Performs scans on multiple URLs from a specified file",
+		Run: func(cmd *cobra.Command, args []string) {
+			if opts.file == "" {
+				fmt.Fprintln(os.Stderr, "Multi scan requires a file with URLs.")
+				os.Exit(1)
+			}
+			urls := utils.ReadFileLines(opts.file)
+			runScan(urls, opts)
+		},
+	}
+	multiCmd.Flags().StringVarP(&opts.file, "file", "f", "", "Specifies a file path containing URLs to scan, with one URL per line.")
+	multiCmd.MarkFlagRequired("file")
+	rootCmd.AddCommand(multiCmd)
+
+	// Global flags
+	rootCmd.PersistentFlags().StringVarP(&opts.method, "method", "m", "GET", "Specifies the HTTP method to use when sending requests.")
+	rootCmd.PersistentFlags().IntVarP(&opts.timeout, "timeout", "t", 5, "Sets the timeout (in seconds) for each request.")
+	rootCmd.PersistentFlags().IntVarP(&opts.concurrency, "concurrency", "c", 10, "Determines the concurrency level.")
+	rootCmd.PersistentFlags().StringVarP(&opts.cookie, "cookie", "k", "", "Defines cookies to include in the scan requests.")
+	rootCmd.PersistentFlags().StringVarP(&opts.origin, "origin", "o", "http://zomasec.io", "Sets the Origin header value to use in the scan requests.")
+	rootCmd.PersistentFlags().StringVarP(&opts.header, "header", "H", "", "Specifies additional headers to include in the scan requests.")
+	rootCmd.PersistentFlags().BoolVarP(&opts.deepScan, "deep-scan", "d", false, "Enable deep scan for more advanced CORS bypass techniques.")
+	rootCmd.PersistentFlags().BoolVarP(&opts.verbose, "verbose", "v", false, "Enable verbose mode for detailed logs.")
+	rootCmd.PersistentFlags().StringVarP(&opts.pocFile, "poc-file", "p", "", "Generate a PoC for any vulnerable request with the name of the URL and result found.")
+
+	rootCmd.Execute()
+}
+
+func runScan(urls []string, opts *options) {
+	if len(urls) == 0 {
+		fmt.Fprintln(os.Stderr, "No URLs provided to scan.")
+		return
+	}
+	r := runner.NewRunner(urls, opts.method, opts.header, opts.origin, opts.cookie, opts.deepScan, opts.verbose, opts.timeout, opts.concurrency, opts.pocFile)
 	err := r.Start()
 	if err != nil {
-		fmt.Printf("Error running scan: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error running scan: %s\n", err)
 		os.Exit(1)
 	}
 }
