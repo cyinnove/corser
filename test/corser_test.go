@@ -3,17 +3,17 @@ package corser
 import (
 	"fmt"
 	"testing"
-
+	"github.com/zomasec/corser/pkg/corser"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Suffix(t *testing.T) {
 	
-	h, _ := NetParser("sub.target.com")
+	h, _ := corser.NetParser("sub.target.com")
 
-	scan := &Scanner{
+	scan := &corser.Scanner{
 		Origin: "zomasec.io",
-		Host: &Host{
+		Host: &corser.Host{
 			Domain: h.Domain,
 			Subdomain: h.Subdomain,
 			TLD: h.TLD,
@@ -31,11 +31,11 @@ func Test_Suffix(t *testing.T) {
 } 
 
 func Test_Prefix(t *testing.T) {
-	h, _ := NetParser("sub.target.com")
+	h, _ := corser.NetParser("sub.target.com")
 
-	scan := &Scanner{
+	scan := &corser.Scanner{
 		Origin: "zomasec.io",
-		Host: &Host{
+		Host: &corser.Host{
 			Domain: h.Domain,
 			Subdomain: h.Subdomain,
 			TLD: h.TLD,
@@ -53,11 +53,11 @@ func Test_Prefix(t *testing.T) {
 
 func Test_Wildcard(t *testing.T) {
 	
-	h, _ := NetParser("sub.target.com")
+	h, _ := corser.NetParser("sub.target.com")
 
-	scan := &Scanner{
+	scan := &corser.Scanner{
 		Origin: "zomasec.io",
-		Host: &Host{
+		Host: &corser.Host{
 			Full: h.Full,
 			Domain: h.Domain,
 			Subdomain: h.Subdomain,
@@ -77,7 +77,7 @@ func Test_Wildcard(t *testing.T) {
 func Test_NetParser(t *testing.T) {
 
 	t.Run("Case no subdomain", func(t *testing.T) {
-		parsed, _ := NetParser("zomasec.io") 
+		parsed, _ := corser.NetParser("zomasec.io") 
 
 		
 		got := parsed.Subdomain
@@ -87,7 +87,7 @@ func Test_NetParser(t *testing.T) {
 	})
 
 	t.Run("Case there is subdomain", func(t *testing.T) {
-		parsed, _ := NetParser("sub.zomasec.io") 
+		parsed, _ := corser.NetParser("sub.zomasec.io") 
 
 		want := "sub."
 		
@@ -98,7 +98,7 @@ func Test_NetParser(t *testing.T) {
 	})
 
 	t.Run("Case full domain", func(t *testing.T) {
-		parsed, _ := NetParser("sub.zomasec.io") 
+		parsed, _ := corser.NetParser("sub.zomasec.io") 
 
 		want := "sub.zomasec.io"
 		fmt.Println(parsed.Full)
