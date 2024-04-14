@@ -42,7 +42,7 @@ func main() {
     }
 
     // Run the scanner for the URLs
-    r := runner.NewOptions(urls, *methodFlag, *headerFlag, *originFlag, *cookieFlag,*deepScanFlag, *verboseFlag, *timeoutFlag, *clevelFlag) 
+    r := runner.NewRunner(urls, *methodFlag, *headerFlag, *originFlag, *cookieFlag,*deepScanFlag, *verboseFlag, *timeoutFlag, *clevelFlag) 
     err := r.Start()
     if err != nil {
         fmt.Printf("Error running scan: %s\n", err)

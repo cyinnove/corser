@@ -2,7 +2,7 @@ package utils
 
 import (
 	"os"
-	"fmt"
+	
 	"bufio"
 	"strings"
 	"github.com/zomasec/logz"
@@ -37,13 +37,3 @@ func ReadFileLines(fileName string ) []string {
 	return lines
 }
 
-func ParseHeader(header string) (key, value string, err error) {
-	parts := strings.SplitN(header, ":", 2) // SplitN ensures we only split on the first colon
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid header format")
-	}
-
-	key = strings.TrimSpace(parts[0])   // Remove whitespace around the key
-	value = strings.TrimSpace(parts[1]) // Remove whitespace around the value
-	return key, value, nil
-}
