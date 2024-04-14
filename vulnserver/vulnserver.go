@@ -3,38 +3,19 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 
 	"github.com/gin-gonic/gin"
 )
 
 func handleCORS_ReflectedOrigin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Writer.Header().Set("Access-Control-Allow-Origin", ctx.Request.Header.Get("Origin"))
-		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
-
-		if ctx.Request.Method == "OPTIONS" {
-			ctx.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-		ctx.Next()
-	}
-}
-
-func handleCORS_Rege0x2() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+		// Allow requests from any origin
 		origin := ctx.Request.Header.Get("Origin")
-		// Adjust the regular expression to match the desired domain pattern
-		if ok, _ := regexp.MatchString(`^https?://[^/]+:4000$`, origin); !ok {
-			fmt.Println("Forbidden request from origin:", origin)
-			ctx.AbortWithStatus(http.StatusForbidden)
-			return
-		}
-
 		ctx.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+
 		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+		ctx.Writer.Header().Set("Access-Control-Allow-Credentials", "true") // Allow credentials
 
 		if ctx.Request.Method == "OPTIONS" {
 			ctx.AbortWithStatus(http.StatusNoContent)
@@ -86,7 +67,7 @@ func main() {
 
 	// Server 3
 	app3 := gin.Default()
-	app3.Use(handleCORS_Rege0x2())
+	app3.Use(handleCORS_ReflectedOrigin()) // Corrected function name
 
 	app3.GET("/api/3", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
