@@ -1,16 +1,16 @@
 package runner
 
 import (
-	"github.com/zomasec/corser/pkg/corser" // Ensure this import path matches your project structure
-	"github.com/zomasec/logz"
-	//"github.com/zomasec/corser/pkg/pocgen"
 	"fmt"
 	"sync"
+
+	"github.com/zomasec/corser/pkg/corser"
+	"github.com/zomasec/corser/pkg/pocgen"
+	"github.com/zomasec/logz"
 )
 
 var (
 	logger = logz.DefaultLogs()
-	
 )
 
 // Runner coordinates scans, now also includes origin and headers for customization.
@@ -24,10 +24,11 @@ type Runner struct {
 	Timeout  int
 	CLevel   int
 	Header   string
+	PocFile  string
 }
 
 // NewRunner creates a new Runner instance capable of scanning multiple URLs with custom settings.
-func NewRunner(urls []string, method, header, origin, cookies string, isDeep, verbose bool, timeout, cLevel int) *Runner {
+func NewRunner(urls []string, method, header, origin, cookies string, isDeep, verbose bool, timeout, cLevel int, pocFile string) *Runner {
 	return &Runner{
 		URLs:     urls,
 		Origin:   origin,
@@ -36,15 +37,16 @@ func NewRunner(urls []string, method, header, origin, cookies string, isDeep, ve
 		Timeout:  timeout,
 		CLevel:   cLevel,
 		DeepScan: isDeep,
-		Verbose: verbose,
+		Verbose:  verbose,
 		Header:   header,
+		PocFile:  pocFile,
 	}
 }
 
 // Start begins the scanning process for all provided URLs with the specified origin and headers.
 func (r *Runner) Start() error {
 	var wg sync.WaitGroup
-	clevel := make(chan struct{}, r.CLevel) // Control the concurrency level
+	clevel := make(chan struct{}, r.CLevel)
 
 	logger.ErrorEnabled = r.Verbose
 	logger.DebugEnabled = r.Verbose
@@ -55,18 +57,33 @@ func (r *Runner) Start() error {
 
 		go func(u string) {
 			defer wg.Done()
-			defer func() { <-clevel }() // Release the slot
+			defer func() { <-clevel }()
 
-			// Assuming NewScanner's correct parameters are url and origin for simplicity
-			// Adjust parameters as per your actual NewScanner function
 			scanner := corser.NewScanner(u, r.Method, r.Header, r.Origin, r.Origin, r.DeepScan, r.Timeout)
 			result := scanner.Scan()
 
-			// Displaying details about the scan results
 			if result.Vulnerable && len(result.Details) > 0 {
 				logz.NewLogger("vuln", logz.Blue, result.URL).Log()
 				for _, detail := range result.Details {
-					fmt.Printf("\t %s-%s %s%s%s\n", logz.Yellow, logz.NC ,logz.Green ,detail, logz.NC)
+					fmt.Printf("\t %s-%s %s%s%s\n", logz.Yellow, logz.NC, logz.Green, detail, logz.NC)
+				}
+
+				// Generate PoC HTML and save it to a file
+				if r.PocFile != "" {
+					pocConfig := &pocgen.Config{
+						Method:           r.Method,
+						TargetURL:        u,
+						SetRequestHeader: r.Header,
+						CustomOrigin:     r.Origin,
+					}
+
+					filename := r.PocFile
+
+					if err := pocgen.SavePoCToFile(pocConfig, filename); err != nil {
+						logger.ERROR("Error generating PoC: %v", err)
+					} else {
+						logger.INFO("PoC saved to %s", filename)
+					}
 				}
 			}
 
@@ -76,7 +93,6 @@ func (r *Runner) Start() error {
 
 		}(url)
 	}
-	
 
 	wg.Wait()
 	return nil
