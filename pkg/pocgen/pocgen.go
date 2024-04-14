@@ -3,6 +3,7 @@ package pocgen
 import (
 	"bytes"
 	"html/template"
+	"github.com/zomasec/corser/templates"
 	"os"
 )
 
@@ -17,12 +18,9 @@ type Config struct {
 
 // GeneratePoC generates an HTML page as a string that acts as a PoC for CORS misconfigurations.
 func GeneratePoC(config *Config) (string, error) {
-	// Ensure the path to your template file is correct. Adjust it if necessary.
-	tmpl, err := template.ParseFiles("./templates/poc-template.html")
-	if err != nil {
-		return "", err
-	}
 
+	tmpl := template.New("Poc-File")
+	tmpl.Parse(templates.POC)
 	var html bytes.Buffer
 	if err := tmpl.Execute(&html, config); err != nil {
 		return "", err

@@ -113,7 +113,6 @@ func handleCORS_WildcardDomain() gin.HandlerFunc {
 			return
         }
         
-     
 
 		ctx.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -134,7 +133,7 @@ func handleCORS_Normal() gin.HandlerFunc {
             ctx.AbortWithStatus(http.StatusForbidden)
 			return
         } 
-
+		ctx.Writer.Header().Set("Content-Type", "application/json")
 		ctx.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
