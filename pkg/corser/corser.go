@@ -13,7 +13,7 @@ import (
 	"github.com/zomasec/logz"
 )
 
-//var logger = logz.DefaultLogs()
+var logger = logz.DefaultLogs()
 
 type Result struct {
 	URL          string
@@ -33,17 +33,18 @@ type Scanner struct {
 	Payloads []string 
 	Timeout int
 	Host    *Host
-	ReqData	*PreFlightData
+	//ReqData	*PreFlightData
 	Client *http.Client
 	
 }
-type PreFlightData struct{
-	ACAO string
-	ACAC string
-	Headers []string
-	Methods []string
+// type PreFlightData struct{
+// 	ACAO string
+// 	ACAC string
+// 	Headers []string
+// 	Methods []string
 
-}
+// }
+
 type Host struct {
 	Full 	   string
 	Domain     string
@@ -76,10 +77,10 @@ func NewScanner(url, method, header, origin, cookies string,isDeep bool, timeout
 		Header: header,
 		DeepScan: isDeep,
 		Client: &client,
-		ReqData: &PreFlightData{
-			Methods: make([]string, 0),
-			Headers: make([]string, 0),
-		},
+		// ReqData: &PreFlightData{
+		// 	Methods: make([]string, 0),
+		// 	Headers: make([]string, 0),
+		// },
 	}
 }
 
@@ -94,7 +95,7 @@ func (s *Scanner) Scan() *Result {
 			URL: s.URL,
 			Vulnerable: false,
 			Details: []string{},
-			ErrorMessage: "URL not alive or an error in request",
+			ErrorMessage: fmt.Sprintf("URL not alive or an error in request : %s", result.ErrorMessage),
 		}
 	}
 

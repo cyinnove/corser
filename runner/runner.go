@@ -10,7 +10,6 @@ import (
 
 var (
 	logger = logz.DefaultLogs()
-	
 )
 
 // Runner coordinates scans, now also includes origin and headers for customization.
@@ -52,6 +51,8 @@ func (r *Runner) Start() error {
 	for _, url := range r.URLs {
 		clevel <- struct{}{}
 		wg.Add(1)
+
+		logger.DEBUG("Started scanning for %s", url)
 
 		go func(u string) {
 			defer wg.Done()

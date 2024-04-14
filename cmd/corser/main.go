@@ -9,7 +9,6 @@ import (
 )
 
 
-
 func main() {
 
     urlFlag := flag.String("url", "", "Specifies the URL to scan for CORS misconfigurations.")

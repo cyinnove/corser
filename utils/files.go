@@ -27,7 +27,10 @@ func ReadFileLines(fileName string ) []string {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		lines = append(lines, strings.TrimSpace(scanner.Text()))
+		if scanner.Text() != "" {
+			lines = append(lines, strings.TrimSpace(scanner.Text()))
+		}
+		
 	}
 
 	if err := scanner.Err(); err != nil {

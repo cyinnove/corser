@@ -43,28 +43,32 @@ func (s *Scanner) JoinTwoice() {
 
 
 func (s *Scanner) anyOrigin() {
-	s.Payloads = append(s.Payloads, "zomasec.io")
+	s.Payloads = append(s.Payloads, "https://zomasec.io")
 }
 
 func (s *Scanner) Prefix() {
+
+	org, _ := NetParser(s.Origin)
 	
 	// payload => https://target.com.zomasec.io
-	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s.%s", s.Host.Domain, s.Host.TLD, s.Origin))
+	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s.%s", s.Host.Domain, s.Host.TLD, org.Full))
 	
 }
 
 func (s *Scanner) Wildcard() {
-	
+	org, _ := NetParser(s.Origin)
 	// Don't forget to use netParser
 	// payload => https://zomasec.io/sub.target.com
-	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/%s",s.Origin, s.Host.Full)) 
+	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/%s", org.Full, s.Host.Full)) 
 
 }
 
 func (s *Scanner) Suffix() {
+	org, _ := NetParser(s.Origin)
+
 	// Don't forget to use netParser
 	// payload => https://zomasec.io.target.com
-	s.Payloads = append(s.Payloads,  fmt.Sprintf("https://%s.%s%s", s.Origin,s.Host.Domain, s.Host.TLD))
+	s.Payloads = append(s.Payloads,  fmt.Sprintf("https://%s.%s%s", org.Full ,s.Host.Domain, s.Host.TLD))
 	
 }
 
@@ -73,15 +77,18 @@ func (s *Scanner) Null() {
 }
 
 func (s *Scanner) UserAtDomain() {
-	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s@%s", s.Host.Full, s.Origin))
+	org, _ := NetParser(s.Origin)
+
+	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s@%s", s.Host.Full, org.Full))
 }
 
 func (s *Scanner) SpecialChars() {
+	org, _ := NetParser(s.Origin)
 	// Remove some of them if they will do the same thing
 	chars := []string{"_", "-", "{", "}", "^", "%60", "!", "~", "`", ";", "|", "&", "(", ")", "*", "'", "\"", "$", "=", "+", "%0b"}
 	// payload : https://website.com`.attacker.com/
 		for _, char := range chars {
-			s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s.%s",s.Host.Full, char, s.Origin))	
+			s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s.%s",s.Host.Full, char, org.Full))	
 		}
 }
 
