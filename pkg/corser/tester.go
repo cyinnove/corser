@@ -93,3 +93,21 @@ func (s *Scanner) SpecialChars() {
 }
 
 
+// PortManipulation adds different ports to test origin handling
+func (s *Scanner) PortManipulation() {
+    org, _ := NetParser(s.Origin)
+    ports := []string{"8080", "443", "80"}
+    for _, port := range ports {
+        portOrigin := fmt.Sprintf("https://%s:%s", org.Full, port)
+        s.Payloads = append(s.Payloads, portOrigin)
+    }
+}
+
+
+// SubdomainFlipping switches subdomain positions
+func (s *Scanner) SubdomainFlipping() {
+    org, _ := NetParser(s.Origin)
+    flippedOrigin := fmt.Sprintf("https://%s%s.%s", org.TLD, org.Subdomain, org.Domain)
+    s.Payloads = append(s.Payloads, flippedOrigin)
+}
+

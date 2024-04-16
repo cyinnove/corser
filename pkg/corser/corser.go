@@ -13,14 +13,15 @@ import (
 	"github.com/zomasec/logz"
 )
 
-var logger = logz.DefaultLogs()
+// var logger = logz.DefaultLogs()
 
 type Result struct {
-	URL          string
-	Vulnerable   bool
-	Payload		 string
-	Details      []string
-	ErrorMessage string
+	URL          string `json:"url"`
+	Vulnerable   bool  	
+	Payload		 string `json:"payload"`
+	Details      []string `json:"details"`
+	ReqData	*PreFlightData `json:"request_data"`
+	ErrorMessage string 
 }
 
 type Scanner struct {
@@ -30,20 +31,21 @@ type Scanner struct {
 	Cookies string
 	Header  string
 	DeepScan bool
+	NoColor  bool
 	Payloads []string 
 	Timeout int
 	Host    *Host
-	//ReqData	*PreFlightData
 	Client *http.Client
+	Result *Result
 	
 }
-// type PreFlightData struct{
-// 	ACAO string
-// 	ACAC string
-// 	Headers []string
-// 	Methods []string
+type PreFlightData struct{
+	ACAO string
+	ACAC string
+	Headers []string
+	Methods []string
 
-// }
+}
 
 type Host struct {
 	Full 	   string
@@ -77,33 +79,31 @@ func NewScanner(url, method, header, origin, cookies string,isDeep bool, timeout
 		Header: header,
 		DeepScan: isDeep,
 		Client: &client,
-		// ReqData: &PreFlightData{
-		// 	Methods: make([]string, 0),
-		// 	Headers: make([]string, 0),
-		// },
+		Result:  &Result{
+			URL: url,
+			Details: make([]string, 0),
+			ReqData: &PreFlightData{},
+		},
 	}
 }
 
 func (s *Scanner) Scan() *Result {
 
-	result := &Result{URL: s.URL}
-	s.preflightRequest(result)
+	s.preflightRequest()
 
-	
-	if result.ErrorMessage != "" {
+	if s.Result.ErrorMessage != "" {
 		return &Result{
 			URL: s.URL,
 			Vulnerable: false,
 			Details: []string{},
-			ErrorMessage: fmt.Sprintf("URL not alive or an error in request : %s", result.ErrorMessage),
+			ErrorMessage: fmt.Sprintf("URL not alive or an error in request : %s", s.Result.ErrorMessage),
 		}
 	}
 
-	s.RequestCheck(result)
-	
-	
-	deduplicateDetails(result)
-	return result
+	s.RequestCheck()
+		
+	deduplicateDetails(s.Result)
+	return s.Result
 }
 
 func deduplicateDetails(result *Result) {
@@ -120,7 +120,7 @@ func deduplicateDetails(result *Result) {
     result.Details = uniqueDetails
 }
 
-func (s *Scanner) RequestCheck(result *Result) {
+func (s *Scanner) RequestCheck() {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
@@ -141,19 +141,19 @@ func (s *Scanner) RequestCheck(result *Result) {
 		wg.Add(1)
 		go func(origin string) {
 			defer wg.Done()
-			s.performRequest(origin, result, &mutex)
+			s.performRequest(origin, &mutex)
 		}(payload)
 	}
 	wg.Wait()
 }
 
-func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mutex) {
+func (s *Scanner) performRequest(payload string, mutex *sync.Mutex) {
 	
 	
 	req, err := http.NewRequest(s.Method, s.URL, nil)
 	if err != nil {
 		mutex.Lock()
-		result.ErrorMessage = fmt.Sprintf("Error creating request: %s", err.Error())
+		s.Result.ErrorMessage = fmt.Sprintf("Error creating request: %s", err.Error())
 		mutex.Unlock()
 		return
 	}
@@ -163,7 +163,7 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 	if s.Header != "" {
 		key, value, err := utils.ParseHeader(s.Header)
 		if err != nil {
-			result.ErrorMessage = fmt.Sprintf("Error formating error: %s", err.Error())
+			s.Result.ErrorMessage = fmt.Sprintf("Error formating error: %s", err.Error())
 			return
 		}
 		req.Header.Add(key, value)
@@ -178,7 +178,7 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 	resp, err := s.Client.Do(req)
 	if err != nil {
 		mutex.Lock()
-		result.ErrorMessage = fmt.Sprintf("Error performing request: %s", err.Error())
+		s.Result.ErrorMessage = fmt.Sprintf("Error performing request: %s", err.Error())
 		mutex.Unlock()
 		return
 	}
@@ -186,7 +186,7 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 
 	_, err = io.Copy(io.Discard, resp.Body)
     if err != nil {
-		result.ErrorMessage = err.Error()
+		s.Result.ErrorMessage = err.Error()
 		return 
     }
 
@@ -196,9 +196,9 @@ func (s *Scanner) performRequest(payload string, result *Result, mutex *sync.Mut
 	vulnerable, details := evaluateResponse(payload, acao, acac)
 	if vulnerable {
 		mutex.Lock()
-		result.Vulnerable = true
-		result.Payload = payload
-		result.Details = append(result.Details, details...)
+		s.Result.Vulnerable = true
+		s.Result.Payload = payload
+		s.Result.Details = append(s.Result.Details, details...)
 		mutex.Unlock()
 	}
 }
@@ -255,41 +255,35 @@ func checkWildCard(acao string) (bool, string) {
 }
 
 // preflightRequestCheck performs a preflight request to see how it's handled.
-func (s *Scanner) preflightRequest(result *Result) {
+func (s *Scanner) preflightRequest() {
 	
 	req, err := http.NewRequest("OPTIONS", s.URL, nil)
 	if err != nil {
-		result.ErrorMessage = err.Error()
+		s.Result.ErrorMessage = err.Error()
 		return 
 	}
 
 	
 	resp, err := s.Client.Do(req)
 	if err != nil {
-		result.ErrorMessage = err.Error()
+		s.Result.ErrorMessage = err.Error()
 		return 
 	}
 	defer resp.Body.Close()
 
 	_, err = io.Copy(io.Discard, resp.Body)
     if err != nil {
-		result.ErrorMessage = err.Error()
+		s.Result.ErrorMessage = err.Error()
 		return 
     }
 
+	s.Result.ReqData.ACAO = resp.Header.Get("Access-Control-Allow-Origin")
+	s.Result.ReqData.ACAC = resp.Header.Get("Access-Control-Allow-Credentials")
 
-	//##############
-	//#
-	//# Will be used in the nexet version 
-	//#
-	//##############
-	// s.ReqData.ACAO = resp.Header.Get("Access-Control-Allow-Origin")
-	// s.ReqData.ACAC = resp.Header.Get("Access-Control-Allow-Credentials")
+	//Access-Control-Allow-Headers
+	s.Result.ReqData.Methods = utils.ParseMethods(resp.Header.Get("Access-Control-Request-Method"))
 
-	// //Access-Control-Allow-Headers
-	// s.ReqData.Methods = utils.ParseMethods(resp.Header.Get("Access-Control-Request-Method"))
-
-	// s.ReqData.Headers = utils.ParseHeaders(resp.Header.Get("Access-Control-Request-Headers"))
+	s.Result.ReqData.Headers = utils.ParseHeaders(resp.Header.Get("Access-Control-Request-Headers"))
 
 		
 }

@@ -1,11 +1,13 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 
 	"github.com/zomasec/corser/pkg/corser"
 	"github.com/zomasec/corser/pkg/pocgen"
+	"github.com/zomasec/corser/utils"
 	"github.com/zomasec/logz"
 )
 
@@ -26,10 +28,32 @@ type Runner struct {
 	CLevel   int
 	Header   string
 	PocFile  string
+	OutputFile string
+	Output   *Output
+}
+
+type Output struct {
+	Results  []*corser.Result `json:"result"`
+}
+
+func (r *Runner) parseResultToJSON() error {
+	
+	jsonData, err  := json.MarshalIndent(r.Output, "", "  ")
+	if err != nil {
+		logger.ERROR("Error Marshaling the output file")
+		return err
+	}
+
+ 
+	if err := utils.OutputJSONFile(r.OutputFile, utils.RemoveANSICodes(string(jsonData))); err != nil {
+		return err
+	}
+
+	return nil 
 }
 
 // NewRunner creates a new Runner instance capable of scanning multiple URLs with custom settings.
-func NewRunner(urls []string, method, header, origin, cookies string, isDeep, verbose bool, timeout, cLevel int, pocFile string) *Runner {
+func NewRunner(urls []string, method, header, origin, cookies string, isDeep, verbose bool, timeout, cLevel int, pocFile, outputFile string) *Runner {
 	return &Runner{
 		URLs:     urls,
 		Origin:   origin,
@@ -40,7 +64,11 @@ func NewRunner(urls []string, method, header, origin, cookies string, isDeep, ve
 		DeepScan: isDeep,
 		Verbose:  verbose,
 		Header:   header,
+		OutputFile: outputFile,
 		PocFile:  pocFile,
+		Output:  &Output{
+			Results: make([]*corser.Result, 0),
+			},
 	}
 }
 
@@ -64,6 +92,11 @@ func (r *Runner) Start() error {
 			result := scanner.Scan()
 
 			if result.Vulnerable && len(result.Details) > 0 {
+				if r.OutputFile != "" {
+				
+					r.Output.Results = append(r.Output.Results, result)
+				}
+				
 				logz.NewLogger("vuln", logz.Blue, result.URL).Log()
 				for _, detail := range result.Details {
 					fmt.Printf("\t %s-%s %s%s%s\n", logz.Yellow, logz.NC, logz.Green, detail, logz.NC)
@@ -79,7 +112,6 @@ func (r *Runner) Start() error {
 					}
 
 					filename := r.PocFile
-
 
 					if err := pocgen.SavePoCToFile(pocConfig, filename); err != nil {
 						userLog.ERROR("Error generating PoC: %v", err)
@@ -97,5 +129,9 @@ func (r *Runner) Start() error {
 	}
 
 	wg.Wait()
+
+	if err := r.parseResultToJSON(); err != nil {
+		userLog.ERROR("Error cannot create the file to output result in it : %s", err.Error())
+	}
 	return nil
 }
