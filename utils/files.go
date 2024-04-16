@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"fmt"
 	"os"
-	
+
 	"bufio"
 	"strings"
-	"github.com/zomasec/logz"
 
+	"github.com/zomasec/logz"
 )
 
 var (
@@ -38,5 +39,19 @@ func ReadFileLines(fileName string ) []string {
 		
 	}
 	return lines
+}
+
+func OutputJSONFile(filename string, data string) error {
+	file, err := os.Create(filename) 
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprint(file, data)	
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
