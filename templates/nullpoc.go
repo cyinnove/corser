@@ -1,6 +1,6 @@
 package templates
+
 var (
-	
 	POCNull = `<!DOCTYPE html>
 	<html>
 	<head>
