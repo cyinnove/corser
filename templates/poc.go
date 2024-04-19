@@ -1,8 +1,7 @@
 package templates
 
-
 var (
-    POC = `<!DOCTYPE html>
+	POC = `<!DOCTYPE html>
     <html>
     <head>
         <script>
@@ -52,4 +51,3 @@ var (
     </html>
     `
 )
-
