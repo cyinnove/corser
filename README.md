@@ -1,4 +1,11 @@
-[![Go Reference](https://pkg.go.dev/badge/github.com/zomasec/corser.svg)](https://pkg.go.dev/github.com/zomasec/corser) 
+
+
+<p align="center">
+[![Go Reference](https://pkg.go.dev/badge/github.com/zomasec/corser.svg)](https://pkg.go.dev/github.com/zomasec/corser/pkg/corser) 
+  <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a>
+  <a href="https://codecov.io/gh/zomasec/corser"><img src="https://codecov.io/gh/zomasec/corser/branch/main/graph/badge.svg"/></a>
+  <a href="https://twitter.com/intent/follow?screen_name=hahwul"><img src="https://img.shields.io/twitter/follow/zomasec?style=flat&logo=x"></a>
+</p>
 
 ![CORSER](./static/corser-logo.png)
 
