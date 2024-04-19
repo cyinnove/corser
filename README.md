@@ -7,7 +7,7 @@
 
 ![CORSER](./static/corser-logo.png)
 
-# Corser: Advanced CORS Misconfiguration Detection Tool
+## Corser: Advanced CORS Misconfiguration Detection Framwork
 
 Welcome to the GitHub repository for **Corser**, a powerful command-line tool designed for detecting CORS misconfigurations in web applications. Corser is developed with the goal of providing security professionals and developers with an efficient means to identify and exploit CORS issues.
 
