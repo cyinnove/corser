@@ -1,2 +1,2 @@
 
-![CORSER](./static/logo.png)
+![CORSER](./static/corser-logo.png)
