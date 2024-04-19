@@ -84,11 +84,3 @@ Run Corser with the desired commands and options:
 ```
 - **Developer:** @zomasec
 - **Contributor:** @h0tak88r
-
-
-
-
-+++
-
-
-
