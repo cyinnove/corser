@@ -99,10 +99,10 @@ func runScan(urls []string, opts *options) {
 
 func banner() {
 	logo := `
-	 _____  ____    ___    ____  ____  ___ 
+         _____  ____    ___    ____  ____  ___ 
 	/ ___/ / __ \  / _ \  / __/ / __/ / _ \
-   / /__  / /_/ / / , _/ _\ \  / _/  / , _/
-   \___/  \____/ /_/|_| /___/ /___/ /_/|_|   	v1.0.0 #Free_Palestine 
+       / /__  / /_/ / / , _/ _\ \  / _/  / , _/
+       \___/  \____/ /_/|_| /___/ /___/ /_/|_|   	v1.0.0 #Free_Palestine 
 
     developed by: @zomasec contributor: @h0tak88r                                     
                                                                                            
