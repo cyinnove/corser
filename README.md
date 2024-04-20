@@ -27,6 +27,7 @@ Install Corser using the following command:
 Run Corser with the desired commands and options:
 
     corser [command] [flags]
+    corser help # this for help 
 
 ### Available Subcommands
 
