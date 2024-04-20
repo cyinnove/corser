@@ -1,0 +1,41 @@
+name: CORSER APP
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.22'  # Ensure this matches the Go version you are using
+
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-gomod-
+
+    - name: Build
+      run: |
+        go build -v ./cmd/corser
+
+    - name: Run tests in test folder
+      run: |
+        go test -v ./test/...
