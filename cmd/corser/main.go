@@ -106,6 +106,7 @@ func banner() {
     \____\___/|_| \_\____/|_____|_| \_\   v1.0.0 #Free_Palestine 
     
     coded by: @zomasec contributor: @h0tak88r                                                                                                                            
+
 `
 	fmt.Fprintf(os.Stderr, logo)
 }
