@@ -77,7 +77,7 @@ Run Corser with the desired commands and options:
 
 ## Additional Information
 ```
-    ____ ___  ____  ____  _____ ____  
+     ____ ___  ____  ____  _____ ____  
     / ___/ _ \|  _ \/ ___|| ____|  _ \ 
    | |  | | | | |_) \___ \|  _| | |_) |
    | |__| |_| |  _ < ___) | |___|  _ < 
