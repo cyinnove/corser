@@ -99,13 +99,14 @@ func runScan(urls []string, opts *options) {
 
 func banner() {
 	logo := `
-         _____  ____    ___    ____  ____  ___ 
-	/ ___/ / __ \  / _ \  / __/ / __/ / _ \
-       / /__  / /_/ / / , _/ _\ \  / _/  / , _/
-       \___/  \____/ /_/|_| /___/ /___/ /_/|_|   	v1.0.0 #Free_Palestine 
+     ____ ___  ____  ____  _____ ____  
+    / ___/ _ \|  _ \/ ___|| ____|  _ \ 
+   | |  | | | | |_) \___ \|  _| | |_) |
+   | |__| |_| |  _ < ___) | |___|  _ < 
+    \____\___/|_| \_\____/|_____|_| \_\   v1.0.0 #Free_Palestine 
+    
+    coded by: @zomasec contributor: @h0tak88r                                                                                                                            
 
-    developed by: @zomasec contributor: @h0tak88r                                     
-                                                                                           
 `
 	fmt.Fprintf(os.Stderr, logo)
 }
