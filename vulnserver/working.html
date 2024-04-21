@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner UI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+    
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+        }
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+        }
+        .card-header .url-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-header .url-input {
+            flex-grow: 1;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+        .card-header .copy-btn {
+            background: #495057;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .card-header .copy-btn:hover {
+            background: #343a40;
+        }
+        .result-key {
+            background-color: #f0f0f0;
+            color: #4a4a4a;
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .result-value {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 0.5rem 0.75rem;
+            display: inline-block;
+            width: auto;
+            max-width: 80%;
+            word-break: break-word;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .toggle-details {
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        .details-container {
+            display: none;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-top: 3px solid #667eea;
+        }
+        .details-container.show {
+            display: block;
+        }
+        .copy-btn {
+            background: #495057;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .copy-btn:hover {
+            background: #343a40;
+        }
+        .copy-btn:active {
+            transform: scale(0.9);
+        }
+        .copied {
+            animation: pop 0.4s ease forwards;
+        }
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="container my-5">
+        <!-- Start of card -->
+        <div class="card">
+            <div class="card-header">
+                <span>Matching</span>
+                <div class="url-container">
+                    <input type="text" value="https://example.com" id="urlInput" class="url-input" readonly>
+                    <button onclick="copyToClipboard()" class="copy-btn">&#x1f4cb;</button> 
+                </div>
+                <span class="toggle-details ms-3" onclick="toggleDetails(this)">&#9660;</span>
+            </div>
+            <div class="card-body">
+                <div class="details-container">
+                    <p><span class="result-key">Headers:</span><span class="result-value">"6LeqpDf0AAAAACWU21BAHw3emgID_j4Vwi4aQZ6"</span></p>
+                    <p><span class="result-key">Payload</span><span class="result-value">main.ff78b1ed.js</span></p>
+                </div>
+            </div>
+        </div>
+        <!-- End of card -->
+        <!-- Repeat the above card structure for each result -->
+    </div>
+     
+
+
+    <script>
+        function toggleDetails(element) {
+            const detailsContainer = element.closest('.card').querySelector('.details-container');
+            detailsContainer.classList.toggle('show');
+            element.textContent = detailsContainer.classList.contains('show') ? '▲' : '▼';
+        }
+    
+        function copyToClipboard() {
+            const copyText = document.getElementById("urlInput");
+            navigator.clipboard.writeText(copyText.value)
+                .then(() => {
+                     const copyButton = document.querySelector('.copy-btn');
+                     copyButton.classList.add('copied');
+                    setTimeout(() => copyButton.classList.remove('copied'), 2000);
+                })
+                .catch(err => console.error('Error copying to clipboard', err));
+        }
+    
+        function fetchScannerResults() {
+            fetch('http://127.0.0.1:3000/scanner')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultsContainer = document.querySelector('.container');
+                    resultsContainer.innerHTML = ''; 
+                    data.forEach(result => {
+                        const cardElement = createCardElement(result);
+                        resultsContainer.appendChild(cardElement);
+                    });
+                })
+                .catch(error => console.error('Error fetching scanner results:', error));
+        }
+    
+        function createCardElement(result) {
+            const card = document.createElement('div');
+            card.className = 'card';
+    
+            const cardHeader = document.createElement('div');
+            cardHeader.className = 'card-header';
+            cardHeader.textContent = 'URL: ' + result.url; // Display the URL
+    
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+    
+            // Add payload, vulnerable status, and error message to the card body
+            const payload = document.createElement('p');
+            payload.textContent = 'Payload: ' + result.payload;
+            cardBody.appendChild(payload);
+    
+            const vulnerable = document.createElement('p');
+            vulnerable.textContent = 'Vulnerable: ' + (result.vulnerable ? 'Yes' : 'No');
+            cardBody.appendChild(vulnerable);
+    
+            if (result.error_message) {
+                const errorMessage = document.createElement('p');
+                errorMessage.textContent = 'Error: ' + result.error_message;
+                cardBody.appendChild(errorMessage);
+            }
+    
+            // Assuming 'details' is an array of strings and should be displayed as a list
+            if (result.details && result.details.length) {
+                const detailsList = document.createElement('ul');
+                result.details.forEach(detail => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = detail;
+                    detailsList.appendChild(listItem);
+                });
+                cardBody.appendChild(detailsList);
+            }
+    
+            // Append everything to the card
+            card.appendChild(cardHeader);
+            card.appendChild(cardBody);
+    
+            return card;
+        }
+    
+        window.addEventListener('DOMContentLoaded', fetchScannerResults);
+    </script>
+    
+
+    
+    
+</body>
+</html>
