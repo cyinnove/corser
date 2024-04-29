@@ -85,3 +85,9 @@ Run Corser with the desired commands and options:
 ```
 - **Developer:** @zomasec
 - **Contributor:** @h0tak88r
+
+## TODO 
+- Add proxy subcommand to recive urls form burpsuite
+- Recheck at the preflight request correct usage
+- Add http test origin
+- Enhance the output of the tool
