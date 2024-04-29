@@ -90,4 +90,6 @@ Run Corser with the desired commands and options:
 - Add proxy subcommand to recive urls form burpsuite
 - Recheck at the preflight request correct usage
 - Add http test origin
-- Enhance the output of the tool
+- Enhance the output of the tool (Adding description and explot and ... like corsy tool)
+- Add config or options file to handle the flags
+- add ability to control the output drom the user by adding flag like -d
