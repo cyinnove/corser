@@ -21,7 +21,7 @@ Install Corser using the following command:
 
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
 - **Multiple URL Scan:** Perform CORS scans on multiple URLs from a specified file.
-
+- - **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
 ## Usage
 
 Run Corser with the desired commands and options:
@@ -94,7 +94,16 @@ Run Corser with the desired commands and options:
 
 - Proxy Mode Scan:
 
-      corser proxy --port 9090 
+      corser proxy --port 9090
+
+
+
+## Screen shots :
+
+
+![CORSER](./static/corser-single.png)
+
+  
 
 ## Additional Information
 ```
