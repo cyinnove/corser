@@ -124,3 +124,4 @@ func (s *Scanner) SubdomainFlipping() {
 	flippedOrigin := fmt.Sprintf("https://%s%s.%s", org.TLD, org.Subdomain, org.Domain)
 	s.Payloads = append(s.Payloads, flippedOrigin)
 }
+

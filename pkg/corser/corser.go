@@ -3,13 +3,13 @@ package corser
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/zomasec/corser/pkg/utils"
 	"io"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/zomasec/corser/utils"
 	"github.com/zomasec/logz"
 )
 
@@ -27,18 +27,18 @@ type Result struct {
 
 // Scanner represents a scanner that performs HTTP requests with various options.
 type Scanner struct {
-	URL      string         // The target URL to scan.
-	Origin   string         // The value of the Origin header to be sent with the request.
-	Method   string         // The HTTP method to be used for the request.
-	Cookies  string         // The cookies to be sent with the request.
-	Header   string         // The additional headers to be sent with the request.
-	DeepScan bool           // Indicates whether to perform a deep scan or not.
-	NoColor  bool           // Indicates whether to disable colored output or not.
-	Payloads []string       // The payloads to be used for scanning.
-	Timeout  int            // The timeout duration for the request.
-	Host     *Host          // The host information for the target URL.
-	Client   *http.Client   // The HTTP client to be used for making requests.
-	Result   *Result        // The result of the scan.
+	URL      string       // The target URL to scan.
+	Origin   string       // The value of the Origin header to be sent with the request.
+	Method   string       // The HTTP method to be used for the request.
+	Cookies  string       // The cookies to be sent with the request.
+	Header   string       // The additional headers to be sent with the request.
+	DeepScan bool         // Indicates whether to perform a deep scan or not.
+	NoColor  bool         // Indicates whether to disable colored output or not.
+	Payloads []string     // The payloads to be used for scanning.
+	Timeout  int          // The timeout duration for the request.
+	Host     *Host        // The host information for the target URL.
+	Client   *http.Client // The HTTP client to be used for making requests.
+	Result   *Result      // The result of the scan.
 }
 
 // PreFlightData represents the data required for pre-flight requests.
@@ -51,10 +51,10 @@ type PreFlightData struct {
 
 // Host represents a host with its various components.
 type Host struct {
-	Full      string   // Full represents the full host string.
-	Domain    string   // Domain represents the domain name of the host.
-	TLD       string   // TLD represents the top-level domain of the host.
-	Subdomain string   // Subdomain represents the subdomain of the host.
+	Full      string // Full represents the full host string.
+	Domain    string // Domain represents the domain name of the host.
+	TLD       string // TLD represents the top-level domain of the host.
+	Subdomain string // Subdomain represents the subdomain of the host.
 }
 
 // NewScanner creates a new instance of the Scanner struct.
@@ -125,12 +125,13 @@ func (s *Scanner) Scan() *Result {
 // - result: A pointer to a Result object.
 //
 // Example usage:
-//   result := &Result{
-//     Details: []string{"detail1", "detail2", "detail1", "detail3"},
-//   }
-//   deduplicateDetails(result)
 //
-//   // After deduplication, result.Details will be []string{"detail1", "detail2", "detail3"}
+//	result := &Result{
+//	  Details: []string{"detail1", "detail2", "detail1", "detail3"},
+//	}
+//	deduplicateDetails(result)
+//
+//	// After deduplication, result.Details will be []string{"detail1", "detail2", "detail3"}
 func deduplicateDetails(result *Result) {
 	detailsMap := make(map[string]bool)
 	uniqueDetails := []string{}
@@ -207,7 +208,7 @@ func (s *Scanner) performRequest(payload string, mutex *sync.Mutex) {
 		req.Header.Add(key, value)
 
 	}
-
+	req.Cookies()
 	if s.Cookies != "" {
 		req.Header.Add("Cookie", s.Cookies)
 	}
@@ -262,7 +263,6 @@ func evaluateResponse(payload, acao, acac string) (bool, []string) {
 	}
 	return false, []string{}
 }
-
 
 // checkOriginReflected checks if the ACAO (Access-Control-Allow-Origin) header reflects the Origin or if the ACAC (Access-Control-Allow-Credentials) header is set to true.
 // It returns a boolean indicating whether a misconfiguration is detected and a string providing additional details about the misconfiguration.

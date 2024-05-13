@@ -1,32 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"net/http/httputil"
-	"net/url"
-	"os"
-	"strings"
-
-	"github.com/elazarl/goproxy"
+	"github.com/spf13/cobra"
+	"github.com/zomasec/corser/pkg/config"
+	"github.com/zomasec/corser/pkg/runner"
 )
 
-func createProxyCmd(opts *options) *cobra.Command {
+func createProxyCmd(options *config.ProxyOptions) *cobra.Command {
 	var proxyCmd = &cobra.Command{
 		Use:   "proxy",
-		Short: "Receives requests from an upstreaming proxy and scans them",
+		Short: "Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Here you would add the logic to receive requests from the proxy,
 			// scan them, and return the results to the user.
-			// You can use the runScan function from [`cmd/corser/scan.go`](cmd/corser/scan.go) to perform the scan.
-			runScan()
+			runner.StartProxyServer(*options)
 		},
 	}
 
-
-	proxyCmd.Flags().StringVarP(&opts.proxyAddress, "proxy", "p", "", "Specifies the address of the proxy server.")
+	proxyCmd.Flags().IntVarP(&options.Port, "port", "p", 9090, "Specifies the port of the proxy server that will receive requests from burpsuite.")
+	proxyCmd.Flags().StringVarP(&options.Origin, "origin", "O", "https://zomasec.io", "Sets the Origin header value to use in the scan requests.")
+	proxyCmd.Flags().BoolVarP(&options.IsDeep, "deep-scan", "d", false, "Enable deep scan for more advanced CORS bypass techniques.")
+	proxyCmd.Flags().BoolVarP(&options.Verbose, "verbose", "v", false, "Enable verbose mode for detailed logs.")
 
 	return proxyCmd
 }
-

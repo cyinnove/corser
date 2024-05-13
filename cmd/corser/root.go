@@ -3,26 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
+
 	"github.com/spf13/cobra"
+	"github.com/zomasec/corser/pkg/config"
 )
 
-type options struct {
-	url         string
-	method      string
-	timeout     int
-	concurrency int
-	cookie      string
-	file        string
-	outputFile  string
-	deepScan    bool
-	origin      string
-	header      string
-	verbose     bool
-	pocFile     string
-}
-
 func main() {
-	opts := &options{}
+	options := &config.Options{
+		URLs: []string{},
+	}
+	proxyOptions := &config.ProxyOptions{}
+
 	var rootCmd = &cobra.Command{
 		Use:   "corser",
 		Short: "Corser is a CLI Application for Advanced CORS Misconfiguration Detection",
@@ -31,27 +22,21 @@ func main() {
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&opts.method, "method", "m", "GET", "Specifies the HTTP method to use when sending requests.")
-	rootCmd.PersistentFlags().IntVarP(&opts.timeout, "timeout", "t", 5, "Sets the timeout (in seconds) for each request.")
-	rootCmd.PersistentFlags().IntVarP(&opts.concurrency, "concurrency", "c", 10, "Determines the concurrency level.")
-	rootCmd.PersistentFlags().StringVarP(&opts.cookie, "cookie", "k", "", "Defines cookies to include in the scan requests.")
-	rootCmd.PersistentFlags().StringVarP(&opts.origin, "origin", "O", "http://zomasec.io", "Sets the Origin header value to use in the scan requests.")
-	rootCmd.PersistentFlags().StringVarP(&opts.header, "header", "H", "", "Specifies additional headers to include in the scan requests.")
-	rootCmd.PersistentFlags().BoolVarP(&opts.deepScan, "deep-scan", "d", false, "Enable deep scan for more advanced CORS bypass techniques.")
-	rootCmd.PersistentFlags().BoolVarP(&opts.verbose, "verbose", "v", false, "Enable verbose mode for detailed logs.")
+	rootCmd.PersistentFlags().StringVarP(&options.Method, "method", "m", "GET", "Specifies the HTTP method to use when sending requests.")
+	rootCmd.PersistentFlags().IntVarP(&options.Timeout, "timeout", "t", 5, "Sets the timeout (in seconds) for each request.")
+	rootCmd.PersistentFlags().IntVarP(&options.Concurrency, "concurrency", "c", 10, "Determines the concurrency level.")
+	rootCmd.PersistentFlags().StringVarP(&options.Cookies, "cookie", "k", "", "Defines cookies to include in the scan requests.")
+	rootCmd.PersistentFlags().StringVarP(&options.Origin, "origin", "O", "https://zomasec.io", "Sets the Origin header value to use in the scan requests.")
+	rootCmd.PersistentFlags().StringVarP(&options.Header, "header", "H", "", "Specifies additional headers to include in the scan requests.")
+	rootCmd.PersistentFlags().BoolVarP(&options.IsDeep, "deep-scan", "d", false, "Enable deep scan for more advanced CORS bypass techniques.")
+	rootCmd.PersistentFlags().BoolVarP(&options.Verbose, "verbose", "v", false, "Enable verbose mode for detailed logs.")
 
-	addCommands(rootCmd, opts)
-	rootCmd.Execute()
+	rootCmd.AddCommand(createSingleCmd(options))
+	rootCmd.AddCommand(createMultiCmd(options))
+	rootCmd.AddCommand(createProxyCmd(proxyOptions))
+
+	_ = rootCmd.Execute()
 }
-
-
-
-func addCommands(rootCmd *cobra.Command, opts *options) {
-	rootCmd.AddCommand(createSingleCmd(opts))
-	rootCmd.AddCommand(createMultiCmd(opts))
-}
-
-
 
 func banner() {
 	logo := `

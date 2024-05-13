@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 )
 
@@ -22,4 +23,13 @@ func ParseMethods(methods string) []string {
 
 func ParseHeaders(methods string) []string {
 	return strings.Split(methods, ",")
+}
+
+func CookiesToString(request *http.Request) string {
+	cookies := request.Cookies()
+	var cookieStrs []string
+	for _, cookie := range cookies {
+		cookieStrs = append(cookieStrs, fmt.Sprintf("%s=%s", cookie.Name, cookie.Value))
+	}
+	return strings.Join(cookieStrs, "; ")
 }
