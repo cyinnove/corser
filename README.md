@@ -21,7 +21,7 @@ Install Corser using the following command:
 
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
 - **Multiple URL Scan:** Perform CORS scans on multiple URLs from a specified file.
-
+- - **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
 ## Usage
 
 Run Corser with the desired commands and options:
@@ -35,6 +35,9 @@ Run Corser with the desired commands and options:
 - `help` Help about any command.
 - `multi` Performs scans on multiple URLs from a specified file.
 - `single` Performs a scan on a single specified URL.
+- `proxy` Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
+
+#### [click here to know how to setup upstreaming proxy in burpsuite](https://forum.portswigger.net/thread/how-do-i-configure-an-upstream-proxy-in-2022-d6f128fc)
 
 ### Flags for `single` Command
 
@@ -52,6 +55,21 @@ Run Corser with the desired commands and options:
 | `-l, --list`     | Specifies a file path containing URLs to scan, with one URL per line. |
 | `-o, --output`   | Specifies the output file path where results should be saved.    |
 
+
+### Flags for `proxy` Command
+
+
+#### Don't use the global flags in proxy subcommand
+
+| Flag         | Description                                                      |
+|--------------|------------------------------------------------------------------|
+| `-h, --help`     | Help for multi command.                                          |
+| `-p, --port`     | Specifies the port of the proxy server that will receive requests from burpsuite. |
+| `-O, --origin`   | Specifies the output file path where results should be saved.    |
+| `-d, --deep-scan`| Enable deep scan for more advanced CORS bypass techniques.    |
+| `-v, --verbose`| Enable verbose mode for detailed logs.    |
+
+
 ### Global Flags
 
 | Flag         | Default        | Description                                             |
@@ -61,7 +79,7 @@ Run Corser with the desired commands and options:
 | `-d, --deep-scan`   | false          | Enable deep scan for more advanced CORS bypass techniques. |
 | `-H, --header`      |                | Specifies additional headers to include in the scan requests. |
 | `-m, --method`      | "GET"          | Specifies the HTTP method to use when sending requests. |
-| `-O, --origin`      | "http://zomasec.io" | Sets the Origin header value to use in the scan requests. |
+| `-O, --origin`      | "https://zomasec.io" | Sets the Origin header value to use in the scan requests. |
 | `-t, --timeout`     | 5              | Sets the timeout (in seconds) for each request.         |
 | `-v, --verbose`     | false          | Enable verbose mode for detailed logs.                  |
 
@@ -69,11 +87,25 @@ Run Corser with the desired commands and options:
 
 - Single URL Scan:
   
-      ./corser single --url "http://example.com"
+      corser single -u/--url http://example.com
 
 - Multiple URL Scan:
 
-      ./corser multi --list "./url_list.txt" --output "./results.txt"
+      corser multi -u/--list ./url_list.txt -o/--output ./results.txt
+
+
+- Proxy Mode Scan:
+
+      corser proxy -p/--port 9090
+
+
+
+## Screen shots :
+
+
+![CORSER](./static/corser-single-mode.png)
+
+  
 
 ## Additional Information
 ```

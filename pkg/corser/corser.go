@@ -3,18 +3,19 @@ package corser
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/zomasec/corser/pkg/utils"
 	"io"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/zomasec/corser/utils"
 	"github.com/zomasec/logz"
 )
 
 // var logger = logz.DefaultLogs()
 
+// Result represents the result of a CORS vulnerability check.
 type Result struct {
 	URL          string `json:"url"`
 	Vulnerable   bool
@@ -24,34 +25,41 @@ type Result struct {
 	ErrorMessage string
 }
 
+// Scanner represents a scanner that performs HTTP requests with various options.
 type Scanner struct {
-	URL      string
-	Origin   string
-	Method   string
-	Cookies  string
-	Header   string
-	DeepScan bool
-	NoColor  bool
-	Payloads []string
-	Timeout  int
-	Host     *Host
-	Client   *http.Client
-	Result   *Result
+	URL      string       // The target URL to scan.
+	Origin   string       // The value of the Origin header to be sent with the request.
+	Method   string       // The HTTP method to be used for the request.
+	Cookies  string       // The cookies to be sent with the request.
+	Header   string       // The additional headers to be sent with the request.
+	DeepScan bool         // Indicates whether to perform a deep scan or not.
+	NoColor  bool         // Indicates whether to disable colored output or not.
+	Payloads []string     // The payloads to be used for scanning.
+	Timeout  int          // The timeout duration for the request.
+	Host     *Host        // The host information for the target URL.
+	Client   *http.Client // The HTTP client to be used for making requests.
+	Result   *Result      // The result of the scan.
 }
+
+// PreFlightData represents the data required for pre-flight requests.
 type PreFlightData struct {
-	ACAO    string
-	ACAC    string
-	Headers []string
-	Methods []string
+	ACAO    string   // ACAO represents the Access-Control-Allow-Origin header value.
+	ACAC    string   // ACAC represents the Access-Control-Allow-Credentials header value.
+	Headers []string // Headers represents the list of allowed headers.
+	Methods []string // Methods represents the list of allowed methods.
 }
 
+// Host represents a host with its various components.
 type Host struct {
-	Full      string
-	Domain    string
-	TLD       string
-	Subdomain string
+	Full      string // Full represents the full host string.
+	Domain    string // Domain represents the domain name of the host.
+	TLD       string // TLD represents the top-level domain of the host.
+	Subdomain string // Subdomain represents the subdomain of the host.
 }
 
+// NewScanner creates a new instance of the Scanner struct.
+// It initializes the HTTP client with the provided parameters and returns a pointer to the Scanner.
+// The Scanner is used to perform CORS scanning on the specified URL.
 func NewScanner(url, method, header, origin, cookies string, isDeep bool, timeout int) *Scanner {
 
 	transport := &http.Transport{
@@ -85,6 +93,10 @@ func NewScanner(url, method, header, origin, cookies string, isDeep bool, timeou
 	}
 }
 
+// Scan performs the scanning operation on the provided URL.
+// It sends a preflight request and checks for any errors.
+// If there is an error, it returns a Result object with the error message.
+// Otherwise, it proceeds with the request check and deduplicates the details before returning the Result.
 func (s *Scanner) Scan() *Result {
 
 	s.preflightRequest()
@@ -104,6 +116,22 @@ func (s *Scanner) Scan() *Result {
 	return s.Result
 }
 
+// deduplicateDetails removes duplicate details from the given Result object.
+// It modifies the Details field of the Result object in-place.
+// The function uses a map to keep track of unique details and appends them to a new slice.
+// Finally, it assigns the new slice of unique details back to the Details field of the Result object.
+//
+// Parameters:
+// - result: A pointer to a Result object.
+//
+// Example usage:
+//
+//	result := &Result{
+//	  Details: []string{"detail1", "detail2", "detail1", "detail3"},
+//	}
+//	deduplicateDetails(result)
+//
+//	// After deduplication, result.Details will be []string{"detail1", "detail2", "detail3"}
 func deduplicateDetails(result *Result) {
 	detailsMap := make(map[string]bool)
 	uniqueDetails := []string{}
@@ -118,6 +146,11 @@ func deduplicateDetails(result *Result) {
 	result.Details = uniqueDetails
 }
 
+// RequestCheck performs a series of checks on the Scanner instance.
+// It sets the Host field by parsing the URL, applies various checks such as anyOrigin,
+// Prefix, Wildcard, Null, Suffix, and JoinTwoice. If DeepScan is enabled, it also performs
+// additional checks like UserAtDomain and SpecialChars. Finally, it performs a series of
+// asynchronous requests using the payloads specified in the Scanner instance.
 func (s *Scanner) RequestCheck() {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
@@ -145,6 +178,15 @@ func (s *Scanner) RequestCheck() {
 	wg.Wait()
 }
 
+// performRequest sends an HTTP request to the specified URL using the provided payload.
+// It sets the necessary headers and handles any errors that occur during the request.
+// If the response indicates a vulnerability, it updates the result accordingly.
+//
+// Parameters:
+// - payload: The payload to be sent in the request.
+// - mutex: A mutex used to synchronize access to the result and other shared data.
+//
+// Returns: None.
 func (s *Scanner) performRequest(payload string, mutex *sync.Mutex) {
 
 	req, err := http.NewRequest(s.Method, s.URL, nil)
@@ -166,7 +208,7 @@ func (s *Scanner) performRequest(payload string, mutex *sync.Mutex) {
 		req.Header.Add(key, value)
 
 	}
-
+	req.Cookies()
 	if s.Cookies != "" {
 		req.Header.Add("Cookie", s.Cookies)
 	}
@@ -199,6 +241,9 @@ func (s *Scanner) performRequest(payload string, mutex *sync.Mutex) {
 	}
 }
 
+// evaluateResponse evaluates the response for potential security vulnerabilities.
+// It takes in the payload, Access-Control-Allow-Origin (ACAO), and Access-Control-Allow-Credentials (ACAC) as parameters.
+// It returns a boolean indicating whether any vulnerabilities were found, and a slice of strings containing the details of the vulnerabilities.
 func evaluateResponse(payload, acao, acac string) (bool, []string) {
 	details := make([]string, 0)
 
@@ -219,8 +264,8 @@ func evaluateResponse(payload, acao, acac string) (bool, []string) {
 	return false, []string{}
 }
 
-// checkOriginReflected checks for specific CORS misconfigurations involving the Access-Control-Allow-Origin (ACAO)
-// and Access-Control-Allow-Credentials (ACAC) headers.
+// checkOriginReflected checks if the ACAO (Access-Control-Allow-Origin) header reflects the Origin or if the ACAC (Access-Control-Allow-Credentials) header is set to true.
+// It returns a boolean indicating whether a misconfiguration is detected and a string providing additional details about the misconfiguration.
 func checkOriginReflected(payload, acao, acac string) (bool, string) {
 	// Check for ACAO reflecting the Origin or ACAC set to true.
 	var detail string
@@ -239,6 +284,8 @@ func checkOriginReflected(payload, acao, acac string) (bool, string) {
 	return false, ""
 }
 
+// checkWildCard checks if the given ACAO (Access-Control-Allow-Origin) header value is a wildcard.
+// It returns a boolean indicating whether the ACAO header is a wildcard and a string with additional details if applicable.
 func checkWildCard(acao string) (bool, string) {
 	if acao == "*" {
 		details := fmt.Sprintf("Wildcard ACAO header found. %s", acao)
@@ -251,11 +298,23 @@ func checkWildCard(acao string) (bool, string) {
 
 // preflightRequestCheck performs a preflight request to see how it's handled.
 func (s *Scanner) preflightRequest() {
-
 	req, err := http.NewRequest("OPTIONS", s.URL, nil)
 	if err != nil {
 		s.Result.ErrorMessage = err.Error()
 		return
+	}
+
+	req.Header.Set("Origin", s.Origin)
+	if s.Header != "" {
+		key, value, err := utils.ParseHeader(s.Header)
+		if err != nil {
+			s.Result.ErrorMessage = err.Error()
+			return
+		}
+		req.Header.Set(key, value)
+	}
+	if s.Cookies != "" {
+		req.Header.Set("Cookie", s.Cookies)
 	}
 
 	resp, err := s.Client.Do(req)
@@ -273,12 +332,8 @@ func (s *Scanner) preflightRequest() {
 
 	s.Result.ReqData.ACAO = resp.Header.Get("Access-Control-Allow-Origin")
 	s.Result.ReqData.ACAC = resp.Header.Get("Access-Control-Allow-Credentials")
-
-	//Access-Control-Allow-Headers
-	s.Result.ReqData.Methods = utils.ParseMethods(resp.Header.Get("Access-Control-Request-Method"))
-
-	s.Result.ReqData.Headers = utils.ParseHeaders(resp.Header.Get("Access-Control-Request-Headers"))
-
+	s.Result.ReqData.Methods = utils.ParseMethods(resp.Header.Get("Access-Control-Allow-Methods"))
+	s.Result.ReqData.Headers = utils.ParseHeaders(resp.Header.Get("Access-Control-Allow-Headers"))
 }
 
 func checkNullOriginAllowed(acao string) (bool, string) {
