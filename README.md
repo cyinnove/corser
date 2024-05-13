@@ -17,6 +17,16 @@ Install Corser using the following command:
 
     go install -v github.com/zomasec/corser/cmd/corser@latest
 
+Or you can build it and run using docker :
+
+
+    git clone https://github.com/zomasec/corser
+    docker build -t corser .
+    docker run corser help
+
+
+
+
 ## Features
 
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
