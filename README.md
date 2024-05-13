@@ -35,6 +35,7 @@ Run Corser with the desired commands and options:
 - `help` Help about any command.
 - `multi` Performs scans on multiple URLs from a specified file.
 - `single` Performs a scan on a single specified URL.
+- `proxy` Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
 
 ### Flags for `single` Command
 
@@ -51,6 +52,21 @@ Run Corser with the desired commands and options:
 | `-h, --help`     | Help for multi command.                                          |
 | `-l, --list`     | Specifies a file path containing URLs to scan, with one URL per line. |
 | `-o, --output`   | Specifies the output file path where results should be saved.    |
+
+
+### Flags for `proxy` Command
+
+
+#### Don't use the global flags in proxy subcommand
+
+| Flag         | Description                                                      |
+|--------------|------------------------------------------------------------------|
+| `-h, --help`     | Help for multi command.                                          |
+| `-p, --port`     | Specifies the port of the proxy server that will receive requests from burpsuite. |
+| `-O, --origin`   | Specifies the output file path where results should be saved.    |
+| `-d, --deep-scan`| Enable deep scan for more advanced CORS bypass techniques.    |
+| `-v, --verbose`| Enable verbose mode for detailed logs.    |
+
 
 ### Global Flags
 
@@ -69,11 +85,16 @@ Run Corser with the desired commands and options:
 
 - Single URL Scan:
   
-      ./corser single --url "http://example.com"
+      corser single --url http://example.com
 
 - Multiple URL Scan:
 
-      ./corser multi --list "./url_list.txt" --output "./results.txt"
+      corser multi --list ./url_list.txt --output ./results.txt
+
+
+- Proxy Mode Scan:
+
+      corser proxy --port 9090 
 
 ## Additional Information
 ```
