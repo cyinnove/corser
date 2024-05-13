@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	logger = logz.DefaultLogs()
+	Logger = logz.DefaultLogs()
 )
 
 func ReadFileLines(fileName string) []string {
@@ -20,7 +20,7 @@ func ReadFileLines(fileName string) []string {
 	file, err := os.Open(fileName)
 
 	if err != nil {
-		logger.ERROR("Failed to open file: %s\n", err)
+		Logger.ERROR("Failed to open file: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -35,7 +35,7 @@ func ReadFileLines(fileName string) []string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		logger.ERROR("Failed to read file: %s\n", err)
+		Logger.ERROR("Failed to read file: %s\n", err)
 
 	}
 	return lines
@@ -53,4 +53,18 @@ func OutputJSONFile(filename string, data string) error {
 	}
 
 	return nil
+}
+
+
+func ReadURLsFromStdin() []string {
+	scanner := bufio.NewScanner(os.Stdin)
+	var urls []string
+	for scanner.Scan() {
+		urls = append(urls, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading from stdin:", err)
+		os.Exit(1)
+	}
+	return urls
 }

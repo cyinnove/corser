@@ -5,6 +5,8 @@ import (
 	"github.com/zomasec/tld"
 )
 
+// NetParser parses the given URL and returns a Host object containing the subdomain, domain, and top-level domain.
+// If an error occurs during parsing, it returns nil and the error.
 func NetParser(url string) (*Host, error) {
 
 	URL, err := tld.Parse(url)
@@ -35,16 +37,20 @@ func NetParser(url string) (*Host, error) {
 	}, nil
 }
 
+// JoinTwoice joins the origin, host domain, and host TLD to create a payload URL.
+// It appends the payload URL to the list of payloads in the Scanner.
 func (s *Scanner) JoinTwoice() {
 	org, _ := NetParser(s.Origin)
 	// payload => https://zomasectarget.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s%s", org.Domain, s.Host.Domain, s.Host.TLD))
 }
 
+// anyOrigin appends a payload to the Scanner's Payloads slice.
 func (s *Scanner) anyOrigin() {
 	s.Payloads = append(s.Payloads, "https://zomasec.io")
 }
 
+// Prefix adds a prefix to the payloads based on the scanner's origin and host information.
 func (s *Scanner) Prefix() {
 
 	org, _ := NetParser(s.Origin)
@@ -54,33 +60,41 @@ func (s *Scanner) Prefix() {
 
 }
 
+// Wildcard generates a wildcard payload based on the scanner's origin and host.
+// It appends the generated payload to the scanner's list of payloads.
 func (s *Scanner) Wildcard() {
 	org, _ := NetParser(s.Origin)
 	// Don't forget to use netParser
 	// payload => https://zomasec.io/sub.target.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/%s", org.Full, s.Host.Full))
-
 }
 
+// Suffix appends a payload to the Scanner's Payloads slice.
+// It constructs a payload URL using the origin, domain, and TLD of the Scanner's Host,
+// and appends it to the Payloads slice.
 func (s *Scanner) Suffix() {
 	org, _ := NetParser(s.Origin)
 
 	// Don't forget to use netParser
 	// payload => https://zomasec.io.target.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s.%s%s", org.Full, s.Host.Domain, s.Host.TLD))
-
 }
 
+// Null appends the string "null" to the list of payloads in the Scanner.
 func (s *Scanner) Null() {
 	s.Payloads = append(s.Payloads, "null")
 }
 
+// UserAtDomain appends a payload to the Scanner's Payloads slice
+// in the format "https://<username>@<domain>".
 func (s *Scanner) UserAtDomain() {
 	org, _ := NetParser(s.Origin)
 
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s@%s", s.Host.Full, org.Full))
 }
 
+// SpecialChars generates payloads by appending special characters to the host URL.
+// It removes some special characters if they will result in the same payload.
 func (s *Scanner) SpecialChars() {
 	org, _ := NetParser(s.Origin)
 	// Remove some of them if they will do the same thing
@@ -92,6 +106,7 @@ func (s *Scanner) SpecialChars() {
 }
 
 // PortManipulation adds different ports to test origin handling
+// PortManipulation generates payload URLs by appending different ports to the origin URL.
 func (s *Scanner) PortManipulation() {
 	org, _ := NetParser(s.Origin)
 	ports := []string{"8080", "443", "80"}
@@ -102,6 +117,8 @@ func (s *Scanner) PortManipulation() {
 }
 
 // SubdomainFlipping switches subdomain positions
+// SubdomainFlipping generates payloads by flipping the subdomain of the origin URL.
+// It appends the flipped origin URL to the list of payloads.
 func (s *Scanner) SubdomainFlipping() {
 	org, _ := NetParser(s.Origin)
 	flippedOrigin := fmt.Sprintf("https://%s%s.%s", org.TLD, org.Subdomain, org.Domain)

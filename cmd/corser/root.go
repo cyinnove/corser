@@ -44,10 +44,11 @@ func main() {
 	rootCmd.Execute()
 }
 
+
+
 func addCommands(rootCmd *cobra.Command, opts *options) {
-	rootCmd.AddCommand(createMultiCmd(opts))
 	rootCmd.AddCommand(createSingleCmd(opts))
-	
+	rootCmd.AddCommand(createMultiCmd(opts))
 }
 
 
