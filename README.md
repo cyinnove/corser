@@ -37,6 +37,8 @@ Run Corser with the desired commands and options:
 - `single` Performs a scan on a single specified URL.
 - `proxy` Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
 
+#### [click here to know how to setup upstreaming proxy in burpsuite](https://forum.portswigger.net/thread/how-do-i-configure-an-upstream-proxy-in-2022-d6f128fc)
+
 ### Flags for `single` Command
 
 | Flag         | Description                                                      |
