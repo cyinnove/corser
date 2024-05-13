@@ -87,16 +87,16 @@ Run Corser with the desired commands and options:
 
 - Single URL Scan:
   
-      corser single --url http://example.com
+      corser single -u/--url http://example.com
 
 - Multiple URL Scan:
 
-      corser multi --list ./url_list.txt --output ./results.txt
+      corser multi -u/--list ./url_list.txt -o/--output ./results.txt
 
 
 - Proxy Mode Scan:
 
-      corser proxy --port 9090
+      corser proxy -p/--port 9090
 
 
 
