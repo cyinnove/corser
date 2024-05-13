@@ -101,7 +101,7 @@ Run Corser with the desired commands and options:
 ## Screen shots :
 
 
-![CORSER](./static/corser-single.png)
+![CORSER](./static/corser-single-mode.png)
 
   
 
