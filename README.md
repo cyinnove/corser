@@ -77,7 +77,7 @@ Run Corser with the desired commands and options:
 | `-d, --deep-scan`   | false          | Enable deep scan for more advanced CORS bypass techniques. |
 | `-H, --header`      |                | Specifies additional headers to include in the scan requests. |
 | `-m, --method`      | "GET"          | Specifies the HTTP method to use when sending requests. |
-| `-O, --origin`      | "http://zomasec.io" | Sets the Origin header value to use in the scan requests. |
+| `-O, --origin`      | "https://zomasec.io" | Sets the Origin header value to use in the scan requests. |
 | `-t, --timeout`     | 5              | Sets the timeout (in seconds) for each request.         |
 | `-v, --verbose`     | false          | Enable verbose mode for detailed logs.                  |
 
