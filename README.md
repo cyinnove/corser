@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://pkg.go.dev/github.com/zomasec/corser/pkg/corser"><img src="https://pkg.go.dev/badge/github.com/zomasec/corser.svg"></a>
-<!--   <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a> -->
+ <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a> 
   <a href="https://codecov.io/gh/zomasec/corser"><img src="https://codecov.io/gh/zomasec/corser/branch/main/graph/badge.svg"/></a>
   <a href="https://twitter.com/intent/follow?screen_name=hahwul"><img src="https://img.shields.io/twitter/follow/zomasec?style=flat&logo=x"></a>
 </p>
@@ -21,7 +21,7 @@ Install Corser using the following command:
 
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
 - **Multiple URL Scan:** Perform CORS scans on multiple URLs from a specified file.
-- - **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
+- **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
 ## Usage
 
 Run Corser with the desired commands and options:
