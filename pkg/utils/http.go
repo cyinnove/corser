@@ -25,11 +25,32 @@ func ParseHeaders(methods string) []string {
 	return strings.Split(methods, ",")
 }
 
+
+// CookiesToString formats the cookies from an HTTP request into a detailed string
 func CookiesToString(request *http.Request) string {
-	cookies := request.Cookies()
 	var cookieStrs []string
+	cookies := request.Cookies()
 	for _, cookie := range cookies {
-		cookieStrs = append(cookieStrs, fmt.Sprintf("%s=%s", cookie.Name, cookie.Value))
+		parts := []string{fmt.Sprintf("%s=%s", cookie.Name, cookie.Value)}
+		if cookie.Path != "" {
+			parts = append(parts, fmt.Sprintf("Path=%s", cookie.Path))
+		}
+		if cookie.Domain != "" {
+			parts = append(parts, fmt.Sprintf("Domain=%s", cookie.Domain))
+		}
+		if cookie.Secure {
+			parts = append(parts, "Secure")
+		}
+		if cookie.HttpOnly {
+			parts = append(parts, "HttpOnly")
+		}
+		if !cookie.Expires.IsZero() {
+			parts = append(parts, fmt.Sprintf("Expires=%s", cookie.Expires.Format(time.RFC1123)))
+		}
+		if cookie.MaxAge > 0 {
+			parts = append(parts, fmt.Sprintf("Max-Age=%d", cookie.MaxAge))
+		}
+		cookieStrs = append(cookieStrs, strings.Join(parts, "; "))
 	}
 	return strings.Join(cookieStrs, "; ")
 }
