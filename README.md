@@ -32,6 +32,7 @@ Or you can build it and run using docker :
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
 - **Multiple URL Scan:** Perform CORS scans on multiple URLs from a specified file.
 - **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
+- **POC Generation:** Generates POC Any bug found in the Single URL scan mode .
 ## Usage
 
 Run Corser with the desired commands and options:
@@ -67,7 +68,6 @@ Run Corser with the desired commands and options:
 
 
 ### Flags for `proxy` Command
-
 
 #### Don't use the global flags in proxy subcommand
 
