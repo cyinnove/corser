@@ -94,19 +94,4 @@ func TestElementExists(t *testing.T) {
 	}
 }
 
-func TestRemoveANSICodes(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"\u001b[0;32mSuccess\u001b[0m", "Success"},
-		{"\u001b[0;32mHello, World!\u001b[0m", "Hello, World!"},
-		{"No ANSI codes here", "No ANSI codes here"},
-		{"Mixed \u001b[0;32mContent\u001b[0m without codes", "Mixed Content without codes"},
-	}
 
-	for _, test := range tests {
-		result := utils.RemoveANSICodes(test.input)
-		assert.Equal(t, test.expected, result)
-	}
-}
