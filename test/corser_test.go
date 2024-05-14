@@ -1,4 +1,4 @@
-package corser
+package test
 
 import (
 	"fmt"

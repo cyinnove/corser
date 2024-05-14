@@ -32,6 +32,7 @@ Or you can build it and run using docker :
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
 - **Multiple URL Scan:** Perform CORS scans on multiple URLs from a specified file.
 - **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
+- **POC Generation:** Generates POC Any bug found in the Single URL scan mode .
 ## Usage
 
 Run Corser with the desired commands and options:
@@ -67,7 +68,6 @@ Run Corser with the desired commands and options:
 
 
 ### Flags for `proxy` Command
-
 
 #### Don't use the global flags in proxy subcommand
 
@@ -115,7 +115,41 @@ Run Corser with the desired commands and options:
 
 ![CORSER](./static/corser-single-mode.png)
 
-  
+
+## Output :
+
+```
+{
+  "result": [
+    {
+      "url": "http://127.0.0.1:3000/api/v1/user",
+      "Vulnerable": true,
+      "payload": "https://vulnserver.zomasec.io",
+      "details": [
+        "ACAO Header: *, ACAC Header: true",
+        "Wildcard ACAO header found. *"
+      ],
+      "request_data": {
+        "ACAO": "*",
+        "ACAC": "true",
+        "Headers": [
+          "Authorization",
+          "X-Requested-With",
+        ],
+        "Methods": [
+          "POST",
+          "GET",
+          "OPTIONS",
+          "DELETE"
+        ]
+      },
+      "ErrorMessage": ""
+    }
+  ]
+}
+```
+
+
 
 ## Developed by :
 
@@ -123,9 +157,7 @@ Run Corser with the desired commands and options:
 - **Contributor:** @h0tak88r
 
 ## TODO 
-- Add proxy subcommand to recive urls form burpsuite
 - Recheck at the preflight request correct usage
 - Add http test origin
 - Enhance the output of the tool (Adding description and explot and ... like corsy tool)
-- Add config or options file to handle the flags
 - add ability to control the output drom the user by adding flag like -d
