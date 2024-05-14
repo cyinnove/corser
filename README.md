@@ -1,7 +1,7 @@
 <p align="center">
   <a href="https://pkg.go.dev/github.com/zomasec/corser/pkg/corser"><img src="https://pkg.go.dev/badge/github.com/zomasec/corser.svg"></a>
-<!--  <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a>  -->
-  <a href="https://codecov.io/gh/zomasec/corser"><img src="https://codecov.io/gh/zomasec/corser/branch/main/graph/badge.svg"/></a>
+  <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a> 
+<!--   <a href="https://codecov.io/gh/zomasec/corser"><img src="https://codecov.io/gh/zomasec/corser/branch/main/graph/badge.svg"/></a> -->
   <a href="https://twitter.com/intent/follow?screen_name=hahwul"><img src="https://img.shields.io/twitter/follow/zomasec?style=flat&logo=x"></a>
 </p>
 
@@ -101,7 +101,7 @@ Run Corser with the desired commands and options:
 
 - Multiple URL Scan:
 
-      corser multi -u/--list ./url_list.txt -o/--output ./results.txt
+      corser multi -u/--list url_list.txt -o/--output results.txt
 
 
 - Proxy Mode Scan:
