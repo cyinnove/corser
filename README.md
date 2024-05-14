@@ -101,7 +101,7 @@ Run Corser with the desired commands and options:
 
 - Multiple URL Scan:
 
-      corser multi -u/--list ./url_list.txt -o/--output ./results.txt
+      corser multi -u/--list url_list.txt -o/--output results.txt
 
 
 - Proxy Mode Scan:
