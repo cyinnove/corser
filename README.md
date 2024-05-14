@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://pkg.go.dev/github.com/zomasec/corser/pkg/corser"><img src="https://pkg.go.dev/badge/github.com/zomasec/corser.svg"></a>
-<!--   <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a> -->
+<!--  <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a>  -->
   <a href="https://codecov.io/gh/zomasec/corser"><img src="https://codecov.io/gh/zomasec/corser/branch/main/graph/badge.svg"/></a>
   <a href="https://twitter.com/intent/follow?screen_name=hahwul"><img src="https://img.shields.io/twitter/follow/zomasec?style=flat&logo=x"></a>
 </p>
@@ -31,7 +31,7 @@ Or you can build it and run using docker :
 
 - **Single URL Scan:** Perform a CORS scan on a specified URL.
 - **Multiple URL Scan:** Perform CORS scans on multiple URLs from a specified file.
-- - **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
+- **Proxy Mode Scan:** Receives requests from an upstreaming proxy and scan them, Ex: BurpSuite, ZAP ...
 ## Usage
 
 Run Corser with the desired commands and options:
@@ -117,13 +117,15 @@ Run Corser with the desired commands and options:
 
   
 
-## Additional Information
-```
-    ____ ___  ____  ____  _____ ____  
-    / ___/ _ \|  _ \/ ___|| ____|  _ \ 
-   | |  | | | | |_) \___ \|  _| | |_) |
-   | |__| |_| |  _ < ___) | |___|  _ < 
-    \____\___/|_| \_\____/|_____|_| \_\   v1.0.0 #Free_Palestine 
-```
+## Developed by :
+
 - **Developer:** @zomasec
 - **Contributor:** @h0tak88r
+
+## TODO 
+- Add proxy subcommand to recive urls form burpsuite
+- Recheck at the preflight request correct usage
+- Add http test origin
+- Enhance the output of the tool (Adding description and explot and ... like corsy tool)
+- Add config or options file to handle the flags
+- add ability to control the output drom the user by adding flag like -d
