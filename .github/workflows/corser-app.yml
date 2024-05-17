@@ -19,7 +19,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.22'  # Ensure this matches the Go version you are using
+        go-version: '1.22.2'  
 
     - name: Check out code
       uses: actions/checkout@v3
@@ -35,7 +35,10 @@ jobs:
     - name: Build
       run: |
         go build -v ./cmd/corser
-
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
     - name: Run tests in test folder
       run: |
         go test -v ./test/...
