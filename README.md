@@ -75,9 +75,9 @@ Run Corser with the desired commands and options:
 
 | Flag         | Description                                                      |
 |--------------|------------------------------------------------------------------|
-| `-h, --help`     | Help for multi command.                                          |
+| `-h, --help`     | Help for proxy command.                                          |
 | `-p, --port`     | Specifies the port of the proxy server that will receive requests from burpsuite. |
-| `-O, --origin`   | Specifies the output file path where results should be saved.    |
+| `-O, --origin`   | Sets the Origin header value to use in the scan requests.    |
 | `-d, --deep-scan`| Enable deep scan for more advanced CORS bypass techniques.    |
 | `-v, --verbose`| Enable verbose mode for detailed logs.    |
 
