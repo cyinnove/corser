@@ -3,6 +3,7 @@ module github.com/zomasec/corser
 go 1.22.2
 
 require (
+	github.com/corpix/uarand v0.2.0
 	github.com/elazarl/goproxy v0.0.0-20231117061959-7cc037d33fb5
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0

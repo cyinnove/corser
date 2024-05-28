@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/corpix/uarand"
 	"github.com/zomasec/logz"
 )
 
@@ -196,6 +197,12 @@ func (s *Scanner) performRequest(payload string, mutex *sync.Mutex) {
 		mutex.Unlock()
 		return
 	}
+
+	// add default headers
+	req.Header.Set("User-Agent", uarand.GetRandom())
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Language", "en")
+	req.Header.Set("Connection", "close")
 
 	req.Header.Add("Origin", payload)
 
