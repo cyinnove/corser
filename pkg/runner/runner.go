@@ -42,7 +42,6 @@ type Output struct {
 }
 
 func (r *Runner) parseResultToJSON() error {
-
 	jsonData, err := json.MarshalIndent(r.Output, "", "  ")
 	if err != nil {
 		logger.ERROR("Error Marshaling the output file")
@@ -57,19 +56,19 @@ func (r *Runner) parseResultToJSON() error {
 }
 
 // NewRunner creates a new Runner instance capable of scanning multiple URLs with custom settings.
-func NewRunner(opions config.Options) *Runner {
+func NewRunner(options config.Options) *Runner {
 	return &Runner{
-		URLs:       opions.URLs,
-		Origin:     opions.Origin,
-		Method:     opions.Method,
-		Cookies:    opions.Cookies,
-		Timeout:    opions.Timeout,
-		CLevel:     opions.Concurrency,
-		DeepScan:   opions.IsDeep,
-		Verbose:    opions.Verbose,
-		Header:     opions.Header,
-		OutputFile: opions.OutputFile,
-		PocFile:    opions.PocFile,
+		URLs:       options.URLs,
+		Origin:     options.Origin,
+		Method:     options.Method,
+		Cookies:    options.Cookies,
+		Timeout:    options.Timeout,
+		CLevel:     options.Concurrency,
+		DeepScan:   options.IsDeep,
+		Verbose:    options.Verbose,
+		Header:     options.Header,
+		OutputFile: options.OutputFile,
+		PocFile:    options.PocFile,
 		Output: &Output{
 			Results: make([]*corser.Result, 0),
 		},
@@ -84,6 +83,8 @@ func (r *Runner) Start() error {
 	logger.ErrorEnabled = r.Verbose
 	logger.DebugEnabled = r.Verbose
 
+	userLog.INFO("Starting scan for %d number of urls", len(r.URLs))
+
 	for _, url := range r.URLs {
 		clevel <- struct{}{}
 		wg.Add(1)
@@ -92,12 +93,11 @@ func (r *Runner) Start() error {
 			defer wg.Done()
 			defer func() { <-clevel }()
 
-			scanner := corser.NewScanner(u, r.Method, r.Header, r.Origin, r.Origin, r.DeepScan, r.Timeout)
+			scanner := corser.NewScanner(u, r.Method, r.Header, r.Origin, r.Cookies, r.DeepScan, r.Timeout)
 			result := scanner.Scan()
 
 			if result.Vulnerable && len(result.Details) > 0 {
 				if r.OutputFile != "" {
-
 					r.Output.Results = append(r.Output.Results, result)
 				}
 
@@ -140,6 +140,8 @@ func (r *Runner) Start() error {
 		}
 	}
 
+
+
 	return nil
 }
 
@@ -181,3 +183,5 @@ func StartProxyServer(options config.ProxyOptions) {
 		os.Exit(1)
 	}
 }
+
+
