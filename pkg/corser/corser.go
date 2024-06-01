@@ -72,9 +72,14 @@ func NewScanner(url, method, header, origin, cookies string, isDeep bool, timeou
 		TLSHandshakeTimeout: 5 * time.Second,
 	}
 
+	redirect := func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
 	client := http.Client{
 		Timeout:   time.Duration(timeout) * time.Second,
 		Transport: transport,
+		CheckRedirect: redirect,
 	}
 
 	return &Scanner{
