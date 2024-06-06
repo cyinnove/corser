@@ -156,10 +156,10 @@ Run Corser with the desired commands and options:
 ## Developed by :
 
 - **Developer:** @zomasec
-- **Contributor:** @h0tak88r
+- **Contributor:** @h0tak88r (Sallam)
 
 ## TODO 
 - Recheck at the preflight request correct usage
 - Add http test origin
-- Enhance the output of the tool (Adding description and explot and ... like corsy tool)
+- Enhance the output of the tool (Adding description and explot and ...)
 - add ability to control the output drom the user by adding flag like -d
