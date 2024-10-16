@@ -40,13 +40,13 @@ func main() {
 
 func banner() {
 	logo := `
-     ____ ___  ____  ____  _____ ____  
-    / ___/ _ \|  _ \/ ___|| ____|  _ \ 
+     ____ ___  ____  ____  _____ ____   
+    / ___/ _ \|  _ \/ ___|| ____|  _ \  #Free_Palestine
    | |  | | | | |_) \___ \|  _| | |_) |
    | |__| |_| |  _ < ___) | |___|  _ < 
-    \____\___/|_| \_\____/|_____|_| \_\   v1.0 #Free_Palestine 
+    \____\___/|_| \_\____/|_____|_| \_\   v1.0 @CyInnove
     
-    developed by: @zomasec contributor: @h0tak88r                                                                                                                            
+    					  						                                                                                                                         
 
 `
 	fmt.Fprintf(os.Stderr, logo)
