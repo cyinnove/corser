@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/zomasec/corser/pkg/config"
-	"github.com/zomasec/corser/pkg/runner"
+	"github.com/cyinnove/corser/pkg/config"
+	"github.com/cyinnove/corser/pkg/runner"
 )
 
 func createProxyCmd(options *config.ProxyOptions) *cobra.Command {

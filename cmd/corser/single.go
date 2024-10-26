@@ -3,8 +3,9 @@ package main
 import (
 	"os"
 
+	"github.com/cyinnove/corser/pkg/config"
+	"github.com/cyinnove/logify"
 	"github.com/spf13/cobra"
-	"github.com/zomasec/corser/pkg/config"
 )
 
 func createSingleCmd(options *config.Options) *cobra.Command {
@@ -14,7 +15,7 @@ func createSingleCmd(options *config.Options) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// This check is redundant if you're already ensuring via flags that a URL is always provided
 			if options.URL == "" {
-				logger.FATAL("Single scan requires a URL.")
+				logify.Fatalf("Single scan requires a URL.")
 				os.Exit(1)
 			}
 			runScan(options)

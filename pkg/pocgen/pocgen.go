@@ -2,7 +2,7 @@ package pocgen
 
 import (
 	"bytes"
-	"github.com/zomasec/corser/templates"
+	"github.com/cyinnove/corser/templates"
 	"html/template"
 	"os"
 )

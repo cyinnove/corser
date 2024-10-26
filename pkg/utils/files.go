@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"strings"
 
+	"github.com/cyinnove/logify"
 	"github.com/zomasec/logz"
 )
 
@@ -20,7 +21,7 @@ func ReadFileLines(fileName string) []string {
 	file, err := os.Open(fileName)
 
 	if err != nil {
-		Logger.ERROR("Failed to open file: %s\n", err)
+		logify.Errorf("Failed to open file: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -35,7 +36,7 @@ func ReadFileLines(fileName string) []string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		Logger.ERROR("Failed to read file: %s\n", err)
+		logify.Errorf("Failed to read file: %s\n", err)
 
 	}
 	return lines
@@ -54,7 +55,6 @@ func OutputJSONFile(filename string, data string) error {
 
 	return nil
 }
-
 
 func ReadURLsFromStdin() []string {
 	scanner := bufio.NewScanner(os.Stdin)

@@ -9,10 +9,10 @@ import (
 	"sync"
 
 	"github.com/elazarl/goproxy"
-	"github.com/zomasec/corser/pkg/config"
-	"github.com/zomasec/corser/pkg/corser"
-	"github.com/zomasec/corser/pkg/pocgen"
-	"github.com/zomasec/corser/pkg/utils"
+	"github.com/cyinnove/corser/pkg/config"
+	"github.com/cyinnove/corser/pkg/corser"
+	"github.com/cyinnove/corser/pkg/pocgen"
+	"github.com/cyinnove/corser/pkg/utils"
 	"github.com/zomasec/logz"
 )
 

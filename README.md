@@ -1,8 +1,8 @@
 <p align="center">
-  <a href="https://pkg.go.dev/github.com/zomasec/corser/pkg/corser"><img src="https://pkg.go.dev/badge/github.com/zomasec/corser.svg"></a>
-  <a href="https://goreportcard.com/report/github.com/zomasec/corser"><img src="https://goreportcard.com/badge/github.com/zomasec/corser"></a> 
-<!-- <a href="https://codecov.io/gh/zomasec/corser" > 
- <img src="https://codecov.io/gh/zomasec/corser/branch/develop/graph/badge.svg?token=GTZIXXG32V"/> 
+  <a href="https://pkg.go.dev/github.com/cyinnove/corser/pkg/corser"><img src="https://pkg.go.dev/badge/github.com/cyinnove/corser.svg"></a>
+  <a href="https://goreportcard.com/report/github.com/cyinnove/corser"><img src="https://goreportcard.com/badge/github.com/cyinnove/corser"></a> 
+<!-- <a href="https://codecov.io/gh/cyinnove/corser" > 
+ <img src="https://codecov.io/gh/cyinnove/corser/branch/develop/graph/badge.svg?token=GTZIXXG32V"/> 
  </a> -->
   <a href="https://twitter.com/intent/follow?screen_name=zomasec"><img src="https://img.shields.io/twitter/follow/zomasec?style=flat&logo=x"></a>
 </p>
@@ -17,12 +17,12 @@ Welcome to the GitHub repository for **Corser**, a powerful command-line tool de
 
 Install Corser using the following command:
 
-    go install -v github.com/zomasec/corser/cmd/corser@latest
+    go install -v github.com/cyinnove/corser/cmd/corser@latest
 
 Or you can build it and run using docker :
 
 
-    git clone https://github.com/zomasec/corser
+    git clone https://github.com/cyinnove/corser
     docker build -t corser .
     docker run corser help
 

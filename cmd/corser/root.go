@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/zomasec/corser/pkg/config"
+	"github.com/cyinnove/corser/pkg/config"
 )
 
 func main() {
@@ -46,7 +46,7 @@ func banner() {
    | |__| |_| |  _ < ___) | |___|  _ < 
     \____\___/|_| \_\____/|_____|_| \_\   v1.0 #Free_Palestine 
     
-    developed by: @zomasec contributor: @h0tak88r                                                                                                                            
+    developed by: @CyInnove                                                                                                                           
 
 `
 	fmt.Fprintf(os.Stderr, logo)

@@ -3,8 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/zomasec/corser/pkg/config"
-	"github.com/zomasec/corser/pkg/runner"
+	"github.com/cyinnove/corser/pkg/config"
+	"github.com/cyinnove/corser/pkg/runner"
+	"github.com/cyinnove/logify"
 )
 
 func runScan(options *config.Options) {
@@ -13,14 +14,14 @@ func runScan(options *config.Options) {
 	}
 
 	if len(options.URLs) == 0 {
-		logger.FATAL("No URLs provided to scan.")
+		logify.Fatalf("No URLs provided to scan.")
 		os.Exit(1)
 	}
 
 	r := runner.NewRunner(*options)
 	err := r.Start()
 	if err != nil {
-		logger.FATAL("Error running scan: %s\n", err.Error())
+		logify.Fatalf("Error running scan: %s\n", err.Error())
 		os.Exit(1)
 	}
 }

@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"github.com/zomasec/corser/pkg/corser"
+	"github.com/cyinnove/corser/pkg/corser"
 	"testing"
 )
 

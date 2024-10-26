@@ -3,19 +3,18 @@ package corser
 import (
 	"fmt"
 
-	"github.com/zomasec/logz"
-	"github.com/zomasec/tld"
+	"github.com/cyinnove/logify"
+	"github.com/cyinnove/tldify"
 )
 
-var logger = logz.DefaultLogs()
 
 // NetParser parses the given URL and returns a Host object containing the subdomain, domain, and top-level domain.
 // If an error occurs during parsing, it returns nil and the error.
 func NetParser(url string) (*Host, error) {
 
-	URL, err := tld.Parse(url)
+	URL, err := tldify.Parse(url)
 	if err != nil {
-		logger.ERROR("Error parsing the URL %s", url)
+		logify.Errorf("Error parsing the URL %s", url)
 		return nil, err
 	}
 
@@ -48,7 +47,7 @@ func (s *Scanner) JoinTwoice() {
 	if err != nil {
 		return
 	}
-	
+
 	// payload => https://zomasectarget.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s%s", org.Domain, s.Host.Domain, s.Host.TLD))
 }
@@ -65,7 +64,6 @@ func (s *Scanner) Prefix() {
 	if err != nil {
 		return
 	}
-	
 
 	// payload => https://target.com.zomasec.io
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s%s.%s", s.Host.Domain, s.Host.TLD, org.Full))
@@ -79,7 +77,7 @@ func (s *Scanner) Wildcard() {
 	if err != nil {
 		return
 	}
-	
+
 	// Don't forget to use netParser
 	// payload => https://zomasec.io/sub.target.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s/%s", org.Full, s.Host.Full))
@@ -93,7 +91,7 @@ func (s *Scanner) Suffix() {
 	if err != nil {
 		return
 	}
-	
+
 	// Don't forget to use netParser
 	// payload => https://zomasec.io.target.com
 	s.Payloads = append(s.Payloads, fmt.Sprintf("https://%s.%s%s", org.Full, s.Host.Domain, s.Host.TLD))
@@ -119,7 +117,7 @@ func (s *Scanner) SpecialChars() {
 	if err != nil {
 		return
 	}
-	
+
 	// Remove some of them if they will do the same thing
 	chars := []string{"_", "-", "{", "}", "^", "%60", "!", "~", "`", ";", "|", "&", "(", ")", "*", "'", "\"", "$", "=", "+", "%0b"}
 	// payload : https://website.com`.attacker.com/
@@ -154,4 +152,3 @@ func (s *Scanner) SubdomainFlipping() {
 	flippedOrigin := fmt.Sprintf("https://%s%s.%s", org.TLD, org.Subdomain, org.Domain)
 	s.Payloads = append(s.Payloads, flippedOrigin)
 }
-

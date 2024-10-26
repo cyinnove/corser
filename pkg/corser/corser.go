@@ -3,7 +3,7 @@ package corser
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/zomasec/corser/pkg/utils"
+	"github.com/cyinnove/corser/pkg/utils"
 	"io"
 	"net"
 	"net/http"

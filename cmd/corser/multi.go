@@ -4,14 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cyinnove/corser/pkg/config"
+	"github.com/cyinnove/corser/pkg/utils"
+	"github.com/cyinnove/logify"
 	"github.com/spf13/cobra"
-	"github.com/zomasec/corser/pkg/config"
-	"github.com/zomasec/corser/pkg/utils"
-	"github.com/zomasec/logz"
-)
-
-var (
-	logger = logz.DefaultLogs()
 )
 
 func createMultiCmd(options *config.Options) *cobra.Command {
@@ -27,7 +23,7 @@ func createMultiCmd(options *config.Options) *cobra.Command {
 				options.URLs = utils.ReadURLsFromStdin()
 			}
 			if len(options.URLs) == 0 {
-				logger.FATAL("No URLs provided to scan into the file.")
+				logify.Fatalf("No URLs provided to scan into the file.")
 				os.Exit(1)
 			}
 			runScan(options)

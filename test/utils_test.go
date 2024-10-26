@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/zomasec/corser/pkg/utils"
+	"github.com/cyinnove/corser/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
